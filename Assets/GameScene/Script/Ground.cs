@@ -4,6 +4,7 @@ public class Ground : MonoBehaviour
 {
     [SerializeField] private GameObject _wallPrefab;
     [SerializeField] private GameObject _tilePrefab;
+    [SerializeField] private GameObject _goalPrefab;
 
     const int _nLengthStart = 1;
     const int _nWidthStart = 1;
@@ -49,7 +50,7 @@ public class Ground : MonoBehaviour
                     }
                     else if(tileType == 2)//mapの情報で2だった場合はゴールする(条件として両方のPlayerがゴールしないといけない)
                     {
-                        //Instantiate(_goalPrefab, new Vector)
+                       // Instantiate(_goalPrefab, new Vector3(length, width, 0), Quaternion.identity, transform);
                     }
                     else if(tileType == 3)//mapの情報で３だった場合はギミックを展開するようにする。(それによりギミックは別々になります。
                     {

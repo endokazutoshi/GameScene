@@ -26,15 +26,7 @@ public class Player : MonoBehaviour
 
     void Update()
     {
-        if (goalReached)
-        {
-            elapsedTime += Time.deltaTime;
-            if (elapsedTime >= waitTime)
-            {
-                SceneManager.LoadScene("ClearScene");
-            }
-            return; // ゴールに到達した場合、それ以外の処理を行わない
-        }
+        if (goalReached) return;
 
         Vector2 move = Vector2.zero;
 
@@ -89,11 +81,13 @@ public class Player : MonoBehaviour
             if (IsMoveValid(newPos))
             {
                 targetPos = newPos;
-                CheckGoal(newPos); // ゴールに到達したかどうかをチェック
             }
         }
 
         Move(targetPos);
+
+        // ゴールに到達したかどうかをチェック
+        CheckGoalReached();
 
         // 現在のプレイヤーの位置をデバッグログで表示
         //Debug.Log("Player's position: " + targetPos);
@@ -118,17 +112,22 @@ public class Player : MonoBehaviour
         transform.position = Vector2.MoveTowards((Vector2)transform.position, targetPosition, _speed * Time.deltaTime);
     }
 
-    private void CheckGoal(Vector2 pos)
+    private void CheckGoalReached()
     {
-        int x = Mathf.RoundToInt(pos.x);
-        int y = Mathf.RoundToInt(pos.y);
+        int x = Mathf.RoundToInt(transform.position.x);
+        int y = Mathf.RoundToInt(transform.position.y);
 
-        // プレイヤーが2の床に到達したかどうかをチェック
+        // プレイヤーがGoalのマスに到達したかどうかをチェック
         if (Ground.map[y, x] == 2)
         {
-            Debug.Log("Goal Reached!");
             goalReached = true;
+            Debug.Log("Goal Reached!");
             elapsedTime = 0.0f; // 経過時間をリセット
+        }
+        elapsedTime += Time.deltaTime;
+        if (elapsedTime >= waitTime)
+        {
+            SceneManager.LoadScene("ClearScene");
         }
     }
 }
