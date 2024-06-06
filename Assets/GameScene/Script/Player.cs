@@ -3,6 +3,12 @@ using UnityEngine.SceneManagement;
 
 public class Player : MonoBehaviour
 {
+    [SerializeField] private int playerNumber;
+    [SerializeField] private Player otherPlayer;
+    private bool player1ReachedGoal = false; // プレイヤー1がゴールに到達したかどうかを追跡する変数
+    private bool player2ReachedGoal = false; // プレイヤー2がゴールに到達したかどうかを追跡する変数
+
+
     [SerializeField] private float _speed; // プレイヤーの移動スピード
     private Vector2 targetPos; // プレイヤーの目標位置
 
@@ -14,7 +20,6 @@ public class Player : MonoBehaviour
     private bool isKeyDown = false; // キーが押されているかどうかのフラグ
     private float keyDownTime = 0f; // キーが押された時間
 
-    private float waitTime = 2.0f; //待機時間
     private float elapsedTime = 0.0f;
     private bool goalReached = false; // ゴールに到達したかどうかのフラグ
 
@@ -121,31 +126,26 @@ public class Player : MonoBehaviour
         if (Mathf.Approximately(transform.position.x, targetPos.x) && Mathf.Approximately(transform.position.y, targetPos.y))
         {
             // プレイヤーがGoalのマスに到達したかどうかをチェック
-            if (Ground.map[targetY, targetX] == 2)
+            // プレイヤーがGoalのマスに到達したかどうかをチェック
+            if (Ground.map[targetY, targetX] == 2 && this.playerNumber == 2) 
+               // Ground.map[targetY, targetX] == 2 && this.playerNumber == 2)
             {
-                goalReached = true;
-                elapsedTime += Time.deltaTime;
-                Debug.Log("Goal reached, elapsedTime: " + elapsedTime); // デバッグログ追加
+            
+                    // 両方のプレイヤーがゴールに到達した場合にゴール処理を実行
+                    goalReached = true;
+                    elapsedTime += Time.deltaTime;
 
-                if (elapsedTime >= waitTime)
-                {
+                    Debug.Log("Goal reached, elapsedTime: " + elapsedTime); // デバッグログ追加
                     Debug.Log("Loading ClearScene"); // デバッグログ追加
                     SceneManager.LoadScene("ClearScene");
-                }
+               
             }
-            else
-            {
-                goalReached = false;
-                elapsedTime = 0.0f; // ゴールに到達していない場合は経過時間をリセット
-            }
+
+
+
         }
-        else
-        {
-            goalReached = false;
-            elapsedTime = 0.0f; // ゴールに到達していない場合は経過時間をリセット
-        }
+
+        //Playerがゴールマスに到達し、かつ、PlayerNumberの1とPlayerNumberの２が同時にゴールマスに到達しないとゴールできません
+
     }
-
-
-
 }

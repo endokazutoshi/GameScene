@@ -303,6 +303,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _wallPrefab: {fileID: 7782792457090277023, guid: 72979e048c0068a4fa29a247350102f2, type: 3}
   _tilePrefab: {fileID: 6358039462078637500, guid: 90b3be83f8e65d14c9106e4aee637574, type: 3}
+  _goalPrefab: {fileID: 0}
   _length: 23
   _width: 10
 --- !u!4 &1430184508
@@ -350,6 +351,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0db9a5e8f55e41c488605c6534116502, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerNumber: 1
+  otherPlayer: {fileID: 1657941403}
   _speed: 5
   initialPosition: {x: 2, y: 2}
 --- !u!212 &1646936444
@@ -449,6 +452,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0db9a5e8f55e41c488605c6534116502, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  playerNumber: 2
+  otherPlayer: {fileID: 1646936443}
   _speed: 5
   initialPosition: {x: 13, y: 4}
 --- !u!212 &1657941404
