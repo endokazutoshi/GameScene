@@ -114,20 +114,38 @@ public class Player : MonoBehaviour
 
     private void CheckGoalReached()
     {
-        int x = Mathf.RoundToInt(transform.position.x);
-        int y = Mathf.RoundToInt(transform.position.y);
+        int targetX = Mathf.RoundToInt(targetPos.x);
+        int targetY = Mathf.RoundToInt(targetPos.y);
 
-        // プレイヤーがGoalのマスに到達したかどうかをチェック
-        if (Ground.map[y, x] == 2)
+        // プレイヤーが目標位置に完全に到達しているかどうかをチェック
+        if (Mathf.Approximately(transform.position.x, targetPos.x) && Mathf.Approximately(transform.position.y, targetPos.y))
         {
-            goalReached = true;
-            Debug.Log("Goal Reached!");
-            elapsedTime = 0.0f; // 経過時間をリセット
+            // プレイヤーがGoalのマスに到達したかどうかをチェック
+            if (Ground.map[targetY, targetX] == 2)
+            {
+                goalReached = true;
+                elapsedTime += Time.deltaTime;
+                Debug.Log("Goal reached, elapsedTime: " + elapsedTime); // デバッグログ追加
+
+                if (elapsedTime >= waitTime)
+                {
+                    Debug.Log("Loading ClearScene"); // デバッグログ追加
+                    SceneManager.LoadScene("ClearScene");
+                }
+            }
+            else
+            {
+                goalReached = false;
+                elapsedTime = 0.0f; // ゴールに到達していない場合は経過時間をリセット
+            }
         }
-        elapsedTime += Time.deltaTime;
-        if (elapsedTime >= waitTime)
+        else
         {
-            SceneManager.LoadScene("ClearScene");
+            goalReached = false;
+            elapsedTime = 0.0f; // ゴールに到達していない場合は経過時間をリセット
         }
     }
+
+
+
 }
