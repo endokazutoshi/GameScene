@@ -334,7 +334,7 @@ GameObject:
   - component: {fileID: 1646936443}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player1
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -351,8 +351,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0db9a5e8f55e41c488605c6534116502, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerNumber: 1
-  otherPlayer: {fileID: 1657941403}
   _speed: 5
   initialPosition: {x: 2, y: 2}
 --- !u!212 &1646936444
@@ -435,7 +433,7 @@ GameObject:
   - component: {fileID: 1657941403}
   m_Layer: 0
   m_Name: Player2
-  m_TagString: Untagged
+  m_TagString: Player2
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -452,8 +450,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0db9a5e8f55e41c488605c6534116502, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerNumber: 2
-  otherPlayer: {fileID: 1646936443}
   _speed: 5
   initialPosition: {x: 13, y: 4}
 --- !u!212 &1657941404

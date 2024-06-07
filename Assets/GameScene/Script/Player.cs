@@ -3,12 +3,6 @@ using UnityEngine.SceneManagement;
 
 public class Player : MonoBehaviour
 {
-    [SerializeField] private int playerNumber;
-    [SerializeField] private Player otherPlayer;
-    private bool player1ReachedGoal = false; // プレイヤー1がゴールに到達したかどうかを追跡する変数
-    private bool player2ReachedGoal = false; // プレイヤー2がゴールに到達したかどうかを追跡する変数
-
-
     [SerializeField] private float _speed; // プレイヤーの移動スピード
     private Vector2 targetPos; // プレイヤーの目標位置
 
@@ -20,7 +14,6 @@ public class Player : MonoBehaviour
     private bool isKeyDown = false; // キーが押されているかどうかのフラグ
     private float keyDownTime = 0f; // キーが押された時間
 
-    private float elapsedTime = 0.0f;
     private bool goalReached = false; // ゴールに到達したかどうかのフラグ
 
     private void Start()
@@ -93,9 +86,6 @@ public class Player : MonoBehaviour
 
         // ゴールに到達したかどうかをチェック
         CheckGoalReached();
-
-        // 現在のプレイヤーの位置をデバッグログで表示
-        //Debug.Log("Player's position: " + targetPos);
     }
 
     private bool IsMoveValid(Vector2 newPos)
@@ -107,7 +97,7 @@ public class Player : MonoBehaviour
         if (x >= minPosition.x && x <= maxPosition.x && y >= minPosition.y && y <= maxPosition.y)
         {
             // マップデータをチェックして移動可能か判定
-            return Ground.map[y, x] == 1 || Ground.map[y, x] == 2; //Groundのmapとして1だったら移動可能。
+            return Ground.map[y, x] == 1 || Ground.map[y, x] == 2; // Groundのmapとして1だったら移動可能
         }
         return false;
     }
@@ -126,26 +116,49 @@ public class Player : MonoBehaviour
         if (Mathf.Approximately(transform.position.x, targetPos.x) && Mathf.Approximately(transform.position.y, targetPos.y))
         {
             // プレイヤーがGoalのマスに到達したかどうかをチェック
-            // プレイヤーがGoalのマスに到達したかどうかをチェック
-            if (Ground.map[targetY, targetX] == 2 && this.playerNumber == 2) 
-               // Ground.map[targetY, targetX] == 2 && this.playerNumber == 2)
+            if (Ground.map[targetY, targetX] == 2)
             {
-            
+                GameObject[] player1Objects = GameObject.FindGameObjectsWithTag("Player1");
+                GameObject[] player2Objects = GameObject.FindGameObjectsWithTag("Player2");
+
+                bool player1AtGoal = false;
+                bool player2AtGoal = false;
+
+                foreach (GameObject player in player1Objects)
+                {
+                    Player playerScript = player.GetComponent<Player>();
+                    int playerX = Mathf.RoundToInt(playerScript.targetPos.x);
+                    int playerY = Mathf.RoundToInt(playerScript.targetPos.y);
+
+                    if (Ground.map[playerY, playerX] == 2)
+                    {
+                        player1AtGoal = true;
+                        break;
+                    }
+                }
+
+                foreach (GameObject player in player2Objects)
+                {
+                    Player playerScript = player.GetComponent<Player>();
+                    int playerX = Mathf.RoundToInt(playerScript.targetPos.x);
+                    int playerY = Mathf.RoundToInt(playerScript.targetPos.y);
+
+                    if (Ground.map[playerY, playerX] == 2)
+                    {
+                        player2AtGoal = true;
+                        break;
+                    }
+                }
+
+                if (player1AtGoal && player2AtGoal)
+                {
                     // 両方のプレイヤーがゴールに到達した場合にゴール処理を実行
                     goalReached = true;
-                    elapsedTime += Time.deltaTime;
 
-                    Debug.Log("Goal reached, elapsedTime: " + elapsedTime); // デバッグログ追加
-                    Debug.Log("Loading ClearScene"); // デバッグログ追加
+                    Debug.Log("Both players reached the goal. Loading ClearScene...");
                     SceneManager.LoadScene("ClearScene");
-               
+                }
             }
-
-
-
         }
-
-        //Playerがゴールマスに到達し、かつ、PlayerNumberの1とPlayerNumberの２が同時にゴールマスに到達しないとゴールできません
-
     }
 }
