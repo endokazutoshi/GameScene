@@ -6,6 +6,7 @@ public class FreezeAndInput : MonoBehaviour
     public GameObject inputPanel; // 入力パネル
     public InputField inputField; // 入力フィールド
     public Text feedbackText;     // フィードバック用のテキスト
+    [SerializeField] string anserPanel;
 
     private bool isFrozen = false;
 
@@ -110,7 +111,7 @@ public class FreezeAndInput : MonoBehaviour
     void CheckInput()
     {
         string inputText = inputField.text;
-        if (inputText == "6")
+        if (inputText == anserPanel)
         {
             Unfreeze();
         }
