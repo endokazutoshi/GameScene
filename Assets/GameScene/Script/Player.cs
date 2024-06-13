@@ -81,6 +81,29 @@ public class Player : MonoBehaviour
                 targetPos = newPos;
             }
         }
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            // プレイヤーの現在位置
+            Vector3 playerPosition = transform.position;
+
+            // 暗証番号の位置
+            Vector3 passwordPosition = FindNearestPasswordPosition();
+
+            // プレイヤーと暗証番号の位置との距離を計算
+            float distance = Vector3.Distance(playerPosition, passwordPosition);
+
+            // 一定の範囲内であれば暗証番号画面に移行する
+            if (distance < 3.0f) // 例: 3.0f はプレイヤーと暗証番号の最大距離
+            {
+                FreezeAndInput freezeAndInput = FindObjectOfType<FreezeAndInput>(); // FreezeAndInput クラスのインスタンスを取得
+                if (freezeAndInput != null)
+                {
+                    freezeAndInput.Freeze(); // フリーズ状態にする
+                }
+            }
+        }
+
+        CheckSpaceKeyPressed();
 
         Move(targetPos);
 
@@ -124,11 +147,11 @@ public class Player : MonoBehaviour
                 bool player1AtGoal = false;
                 bool player2AtGoal = false;
 
-                foreach (GameObject player in player1Objects)
+                foreach (GameObject p1 in player1Objects)
                 {
-                    Player playerScript = player.GetComponent<Player>();
-                    int playerX = Mathf.RoundToInt(playerScript.targetPos.x);
-                    int playerY = Mathf.RoundToInt(playerScript.targetPos.y);
+                    Player p1Script = p1.GetComponent<Player>();
+                    int playerX = Mathf.RoundToInt(p1Script.GetTargetPos().x);
+                    int playerY = Mathf.RoundToInt(p1Script.GetTargetPos().y);
 
                     if (Ground.map[playerY, playerX] == 2)
                     {
@@ -137,11 +160,11 @@ public class Player : MonoBehaviour
                     }
                 }
 
-                foreach (GameObject player in player2Objects)
+                foreach (GameObject p2 in player2Objects)
                 {
-                    Player playerScript = player.GetComponent<Player>();
-                    int playerX = Mathf.RoundToInt(playerScript.targetPos.x);
-                    int playerY = Mathf.RoundToInt(playerScript.targetPos.y);
+                    Player p2Script = p2.GetComponent<Player>();
+                    int playerX = Mathf.RoundToInt(p2Script.GetTargetPos().x);
+                    int playerY = Mathf.RoundToInt(p2Script.GetTargetPos().y);
 
                     if (Ground.map[playerY, playerX] == 2)
                     {
@@ -153,12 +176,68 @@ public class Player : MonoBehaviour
                 if (player1AtGoal && player2AtGoal)
                 {
                     // 両方のプレイヤーがゴールに到達した場合にゴール処理を実行
-                    goalReached = true;
-
                     Debug.Log("Both players reached the goal. Loading ClearScene...");
                     SceneManager.LoadScene("ClearScene");
                 }
             }
         }
+    }
+
+    public Vector2 GetTargetPos()
+    {
+        return targetPos;
+    }
+
+    private void CheckSpaceKeyPressed()
+    {
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            int currentX = Mathf.RoundToInt(transform.position.x);
+            int currentY = Mathf.RoundToInt(transform.position.y);
+
+            // プレイヤーの現在位置を基準にして上下左右の位置をチェックし、
+            // もし周囲にギミックの壁があるならばFreezeAndInputコンポーネントのFreezeメソッドを呼び出す
+            if (HasNearbyGimmickWall(currentX, currentY))
+            {
+                // FreezeAndInputコンポーネントを持つオブジェクトを探す
+                FreezeAndInput freezeAndInput = FindObjectOfType<FreezeAndInput>();
+                if (freezeAndInput != null)
+                {
+                    // Freezeメソッドを呼び出す
+                    freezeAndInput.Freeze();
+                }
+            }
+        }
+    }
+
+    Vector3 FindNearestPasswordPosition()
+    {
+        GameObject[] passwordObjects = GameObject.FindGameObjectsWithTag("Password");
+        Vector3 playerPosition = transform.position;
+        Vector3 nearestPosition = Vector3.zero;
+        float nearestDistance = Mathf.Infinity;
+
+        foreach (GameObject passwordObject in passwordObjects)
+        {
+            Vector3 passwordPosition = passwordObject.transform.position;
+            float distance = Vector3.Distance(playerPosition, passwordPosition);
+            if (distance < nearestDistance)
+            {
+                nearestDistance = distance;
+                nearestPosition = passwordPosition;
+            }
+        }
+
+        return nearestPosition;
+    }
+
+    // プレイヤーの周囲にギミックの壁があるかどうかをチェックする関数
+    private bool HasNearbyGimmickWall(int x, int y)
+    {
+        // 上下左右の位置をチェックし、どれか一つでもギミックの壁があればtrueを返す
+        return Ground.map[y, x - 1] == 3 || // 左にギミックの壁があるかチェック
+               Ground.map[y, x + 1] == 3 || // 右にギミックの壁があるかチェック
+               Ground.map[y - 1, x] == 3 || // 上にギミックの壁があるかチェック
+               Ground.map[y + 1, x] == 3;   // 下にギミックの壁があるかチェック
     }
 }
