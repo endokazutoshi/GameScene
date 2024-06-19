@@ -30,9 +30,9 @@ public class Ground : MonoBehaviour
         {0, 1, 1, 1, 0, 1, 1, 5, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0},
         {0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0},
         {0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0},
-        {0, 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0},
-        {0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0},
-        {0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0},
+        {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 1, 0},
+        {0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0},
+        {0, 3, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0},
         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
     };
 
@@ -89,6 +89,13 @@ public class Ground : MonoBehaviour
                     Switch(new Vector3(length, width, 0));
                     Debug.Log("スイッチを配置: " + new Vector3(length, width, 0));
                 }
+
+                //if (tileType == 6)
+                //{
+                //    Vector3 specialTilePosition = new Vector3(length, width, 0);
+                //    PlaceSpecialTile(specialTilePosition);
+                //    Debug.Log("特殊マスを配置: " + specialTilePosition);
+                //}
             }
         }
     }
@@ -155,54 +162,7 @@ public class Ground : MonoBehaviour
         return false;
     }
 
-       void Update()
-    {
-        // 他の更新処理...
 
-        // プレイヤーの位置周辺に暗証番号のブロックがあるかどうかを確認し、スペースキーを押したら暗証番号入力画面に進む
-        CheckNearbyPasswordBlock();
-    }
-
-    void CheckNearbyPasswordBlock()
-    {
-        // プレイヤーの位置を取得
-        Vector3 playerPosition = GetPlayerPosition();
-
-        // プレイヤーの周囲にあるブロックをチェック
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(playerPosition, 1f); // プレイヤーの周囲1の円内のコライダーを取得
-        foreach (var collider in colliders)
-        {
-            // ブロックが暗証番号のブロックであるかをチェック
-            if (collider.CompareTag("Password"))
-            {
-                // スペースキーが押されたら、FreezeAndInput.csの処理に進む
-                if (Input.GetKeyDown(KeyCode.Space))
-                {
-                    // FreezeAndInput.csの処理を呼び出す
-                    FreezeAndInput freezeAndInput = FindObjectOfType<FreezeAndInput>();
-                    if (freezeAndInput != null)
-                    {
-                        freezeAndInput.Freeze();
-                    }
-                }
-            }
-        }
-    }
-
-    Vector3 GetPlayerPosition()
-    {
-        // プレイヤーの位置を取得するロジックを追加してください
-        // 例えば、プレイヤーのGameObjectをタグで検索して、その位置を返すなどの方法が考えられます
-        GameObject player = GameObject.FindGameObjectWithTag("Player");
-        if (player != null)
-        {
-            return player.transform.position;
-        }
-        else
-        {
-            return Vector3.zero;
-        }
-    }
 
     private void Switch(Vector3 position)
     {
@@ -233,7 +193,7 @@ public class Ground : MonoBehaviour
         get { return map.GetLength(0); }
     }
 
-    // 他のコード...
+    //// 他のコード...
 
 
 }

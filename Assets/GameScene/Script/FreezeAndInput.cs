@@ -51,29 +51,31 @@ public class FreezeAndInput : MonoBehaviour
             }
         }
         // この部分は不要になるので削除
-        // if (isFrozen && Input.GetKeyDown(KeyCode.Return))
-        // {
-        //     CheckInput();
-        // }
+        if (inputPanel.activeSelf && Input.GetKeyDown(KeyCode.Return))
+        {
+            CheckInput();
+        }
 
 
     }
 
     public void Freeze()
     {
-        foreach (var go in FindObjectsOfType<GameObject>())
+        Debug.Log("Freeze メソッドが呼び出されました。");
+
+        // "Player" タグを持つオブジェクトの MonoBehaviour を無効にする
+        GameObject[] players = GameObject.FindGameObjectsWithTag("Player1");
+        foreach (var player in players)
         {
-            if (go.CompareTag("Player"))
+            var component = player.GetComponent<MonoBehaviour>();
+            if (component != null)
             {
-                var component = go.GetComponent<MonoBehaviour>();
-                if (component != null)
-                {
-                    component.enabled = false;
-                }
-                else
-                {
-                    Debug.LogWarning($"GameObject '{go.name}' with tag 'Player' does not have a MonoBehaviour component.");
-                }
+                component.enabled = false;
+                Debug.Log($"Player '{player.name}' がフリーズされました。");
+            }
+            else
+            {
+                Debug.LogWarning($"GameObject '{player.name}' with tag 'Player' does not have a MonoBehaviour component.");
             }
         }
 
@@ -86,19 +88,21 @@ public class FreezeAndInput : MonoBehaviour
 
     public void Unfreeze()
     {
-        foreach (var go in FindObjectsOfType<GameObject>())
+        Debug.Log("Unfreeze メソッドが呼び出されました。");
+
+        // "Player" タグを持つオブジェクトの MonoBehaviour を再度有効にする
+        GameObject[] players = GameObject.FindGameObjectsWithTag("Player1");
+        foreach (var player in players)
         {
-            if (go.CompareTag("Player") || go.CompareTag("Player2"))
+            var component = player.GetComponent<MonoBehaviour>();
+            if (component != null)
             {
-                var component = go.GetComponent<MonoBehaviour>();
-                if (component != null)
-                {
-                    component.enabled = true;
-                }
-                else
-                {
-                    Debug.LogWarning($"GameObject '{go.name}' with tag '{go.tag}' does not have a MonoBehaviour component.");
-                }
+                component.enabled = true;
+                Debug.Log($"Player '{player.name}' がアンフリーズされました。");
+            }
+            else
+            {
+                Debug.LogWarning($"GameObject '{player.name}' with tag 'Player' does not have a MonoBehaviour component.");
             }
         }
 

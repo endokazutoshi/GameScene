@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Collections;
 
 public class Player : MonoBehaviour
 {
@@ -16,6 +17,13 @@ public class Player : MonoBehaviour
 
     private bool goalReached = false; // ゴールに到達したかどうかのフラグ
 
+    private bool isFrozen = false; // プレイヤーが凍結されているかどうかのフラグ
+
+    public void SetFrozen(bool frozen)
+    {
+        isFrozen = frozen;
+    }
+
     private void Start()
     {
         transform.position = initialPosition;
@@ -24,7 +32,7 @@ public class Player : MonoBehaviour
 
     void Update()
     {
-        if (goalReached) return;
+        if (goalReached || isFrozen) return;
 
         Vector2 move = Vector2.zero;
 
@@ -81,31 +89,11 @@ public class Player : MonoBehaviour
                 targetPos = newPos;
             }
         }
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            // プレイヤーの現在位置
-            Vector3 playerPosition = transform.position;
-
-            // 暗証番号の位置
-            Vector3 passwordPosition = FindNearestPasswordPosition();
-
-            // プレイヤーと暗証番号の位置との距離を計算
-            float distance = Vector3.Distance(playerPosition, passwordPosition);
-
-            // 一定の範囲内であれば暗証番号画面に移行する
-            if (distance < 3.0f) // 例: 3.0f はプレイヤーと暗証番号の最大距離
-            {
-                FreezeAndInput freezeAndInput = FindObjectOfType<FreezeAndInput>(); // FreezeAndInput クラスのインスタンスを取得
-                if (freezeAndInput != null)
-                {
-                    freezeAndInput.Freeze(); // フリーズ状態にする
-                }
-            }
-        }
-
-        CheckSpaceKeyPressed();
 
         Move(targetPos);
+
+        //番号入力マスの近くでスペースキーが押された場合の処理
+        CheckSpaceKeyPressed();
 
         // ゴールに到達したかどうかをチェック
         CheckGoalReached();
@@ -120,7 +108,7 @@ public class Player : MonoBehaviour
         if (x >= minPosition.x && x <= maxPosition.x && y >= minPosition.y && y <= maxPosition.y)
         {
             // マップデータをチェックして移動可能か判定
-            return Ground.map[y, x] == 1 || Ground.map[y, x] == 2; // Groundのmapとして1だったら移動可能
+            return Ground.map[y, x] == 1 || Ground.map[y, x] == 2 || Ground.map[y, x] == 6; // Groundのmapとして1だったら移動可能
         }
         return false;
     }
@@ -195,9 +183,8 @@ public class Player : MonoBehaviour
             int currentX = Mathf.RoundToInt(transform.position.x);
             int currentY = Mathf.RoundToInt(transform.position.y);
 
-            // プレイヤーの現在位置を基準にして上下左右の位置をチェックし、
-            // もし周囲にギミックの壁があるならばFreezeAndInputコンポーネントのFreezeメソッドを呼び出す
-            if (HasNearbyGimmickWall(currentX, currentY))
+            // プレイヤーの現在位置がtileType==6のマスかどうかをチェック
+            if (Ground.map[currentY, currentX] == 6)
             {
                 // FreezeAndInputコンポーネントを持つオブジェクトを探す
                 FreezeAndInput freezeAndInput = FindObjectOfType<FreezeAndInput>();
@@ -205,8 +192,48 @@ public class Player : MonoBehaviour
                 {
                     // Freezeメソッドを呼び出す
                     freezeAndInput.Freeze();
+                    SetFrozen(true); // プレイヤーを凍結状態にする
+
+                    // ここでパスワード入力の後にUnfreezeメソッドを呼び出す
+                    // これにより、パスワードが正しい場合にプレイヤーが動けるようになる
+                    StartCoroutine(WaitAndUnfreeze(freezeAndInput));
                 }
             }
+            else
+            {
+                // プレイヤーの現在位置を基準にして上下左右の位置をチェックし、
+                // もし周囲にギミックの壁があるならばFreezeAndInputコンポーネントのFreezeメソッドを呼び出す
+                if (HasNearbyGimmickWall(currentX, currentY))
+                {
+                    // FreezeAndInputコンポーネントを持つオブジェクトを探す
+                    FreezeAndInput freezeAndInput = FindObjectOfType<FreezeAndInput>();
+                    if (freezeAndInput != null)
+                    {
+                        // Freezeメソッドを呼び出す
+                        freezeAndInput.Freeze();
+                        SetFrozen(true); // プレイヤーを凍結状態にする
+                    }
+                }
+            }
+        }
+    }
+
+    private IEnumerator WaitAndUnfreeze(FreezeAndInput freezeAndInput)
+    {
+        // パスワードが正しいかどうかを確認するための待機時間
+        yield return new WaitForSeconds(2f); // 例として2秒待つ
+
+        // パスワードが正しい場合、Unfreezeメソッドを呼び出す
+        if (freezeAndInput.)
+        {
+            freezeAndInput.Unfreeze();
+            SetFrozen(false); // プレイヤーの凍結を解除する
+        }
+        else
+        {
+            // パスワードが正しくない場合の処理
+            Debug.Log("Password incorrect. Player remains frozen.");
+            // ここで何かしらのエラーメッセージなどを表示するなどの処理を行う
         }
     }
 
@@ -241,3 +268,4 @@ public class Player : MonoBehaviour
                Ground.map[y + 1, x] == 3;   // 下にギミックの壁があるかチェック
     }
 }
+// ここでコードが途切れたので、それ以降が必要であればお知らせください。
