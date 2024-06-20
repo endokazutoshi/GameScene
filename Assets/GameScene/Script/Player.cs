@@ -236,6 +236,15 @@ public class Player : MonoBehaviour
     private bool goalReached = false; // ゴールに到達したかどうかのフラグ
 
     private bool isFrozen = false; // プレイヤーが凍結されているかどうかのフラグ
+    private int a = 1;
+
+    private enum InputState
+    {
+        Moving,
+        SpaceKey,
+        GoalCheck
+    }
+
 
     public void SetFrozen(bool frozen)
     {
@@ -251,14 +260,25 @@ public class Player : MonoBehaviour
     void Update()
     {
         if (goalReached || isFrozen) return;
-        ProcessMovementInput();
-        Move(targetPos);
+        switch(a)
+        {
+            case 1:
+                ProcessMovementInput();
+            case 2:
+                //番号入力マスの近くでスペースキーが押された場合の処理
+                CheckSpaceKeyPressed();
+                a = 1;
+            case 3:
+                // ゴールに到達したかどうかをチェック
+                CheckGoalReached();
+            default:
+                break;
+        }
+        
 
-        //番号入力マスの近くでスペースキーが押された場合の処理
-        CheckSpaceKeyPressed();
 
-        // ゴールに到達したかどうかをチェック
-        CheckGoalReached();
+
+       
     }
 
     private void ProcessMovementInput()
@@ -319,6 +339,8 @@ public class Player : MonoBehaviour
                 targetPos = newPos;
             }
         }
+        Move(targetPos);
+
 
     }
 
