@@ -1,12 +1,12 @@
-using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine;
 
 public class FreezeAndInput : MonoBehaviour
 {
     public GameObject inputPanel; // 入力パネル
     public InputField inputField; // 入力フィールド
     public Text feedbackText;     // フィードバック用のテキスト
-    [SerializeField] string anserPanel;
+    [SerializeField] string answerPanel; // 正解のパスワード
 
     private bool isFrozen = false;
 
@@ -50,22 +50,20 @@ public class FreezeAndInput : MonoBehaviour
                 Freeze();
             }
         }
-        // この部分は不要になるので削除
+
         if (inputPanel.activeSelf && Input.GetKeyDown(KeyCode.Return))
         {
             CheckInput();
         }
-
-
     }
 
     public void Freeze()
     {
         Debug.Log("Freeze メソッドが呼び出されました。");
 
-        // "Player" タグを持つオブジェクトの MonoBehaviour を無効にする
-        GameObject[] players = GameObject.FindGameObjectsWithTag("Player1");
-        foreach (var player in players)
+        // "Player1" タグを持つオブジェクトの MonoBehaviour を無効にする
+        GameObject[] players1 = GameObject.FindGameObjectsWithTag("Player1");
+        foreach (var player in players1)
         {
             var component = player.GetComponent<MonoBehaviour>();
             if (component != null)
@@ -75,7 +73,23 @@ public class FreezeAndInput : MonoBehaviour
             }
             else
             {
-                Debug.LogWarning($"GameObject '{player.name}' with tag 'Player' does not have a MonoBehaviour component.");
+                Debug.LogWarning($"GameObject '{player.name}' with tag 'Player1' does not have a MonoBehaviour component.");
+            }
+        }
+
+        // "Player2" タグを持つオブジェクトの MonoBehaviour も無効にする
+        GameObject[] players2 = GameObject.FindGameObjectsWithTag("Player2");
+        foreach (var player in players2)
+        {
+            var component = player.GetComponent<MonoBehaviour>();
+            if (component != null)
+            {
+                component.enabled = false;
+                Debug.Log($"Player '{player.name}' がフリーズされました。");
+            }
+            else
+            {
+                Debug.LogWarning($"GameObject '{player.name}' with tag 'Player2' does not have a MonoBehaviour component.");
             }
         }
 
@@ -90,24 +104,45 @@ public class FreezeAndInput : MonoBehaviour
     {
         Debug.Log("Unfreeze メソッドが呼び出されました。");
 
-        // "Player" タグを持つオブジェクトの MonoBehaviour を再度有効にする
-        GameObject[] players = GameObject.FindGameObjectsWithTag("Player1");
-        foreach (var player in players)
+        // "Player1" タグを持つオブジェクトの MonoBehaviour を再度有効にする
+        GameObject[] players1 = GameObject.FindGameObjectsWithTag("Player1");
+        foreach (var player in players1)
         {
             var component = player.GetComponent<MonoBehaviour>();
             if (component != null)
             {
-                component.enabled = true;
+                component.enabled = true; // プレイヤーのコンポーネントを有効にする
                 Debug.Log($"Player '{player.name}' がアンフリーズされました。");
             }
             else
             {
-                Debug.LogWarning($"GameObject '{player.name}' with tag 'Player' does not have a MonoBehaviour component.");
+                Debug.LogWarning($"GameObject '{player.name}' with tag 'Player1' does not have a MonoBehaviour component.");
+            }
+        }
+
+        // "Player2" タグを持つオブジェクトの MonoBehaviour も再度有効にする
+        GameObject[] players2 = GameObject.FindGameObjectsWithTag("Player2");
+        foreach (var player in players2)
+        {
+            var component = player.GetComponent<MonoBehaviour>();
+            if (component != null)
+            {
+                component.enabled = true; // プレイヤーのコンポーネントを有効にする
+                Debug.Log($"Player '{player.name}' がアンフリーズされました。");
+            }
+            else
+            {
+                Debug.LogWarning($"GameObject '{player.name}' with tag 'Player2' does not have a MonoBehaviour component.");
             }
         }
 
         inputPanel.SetActive(false);
         isFrozen = false;
+    }
+
+    public bool IsPasswordCorrect()
+    {
+        return inputField.text == answerPanel;
     }
 
     void OnEndEdit(string inputText)
@@ -118,9 +153,9 @@ public class FreezeAndInput : MonoBehaviour
     void CheckInput()
     {
         string inputText = inputField.text;
-        if (inputText == anserPanel)
+        if (inputText == answerPanel) // 正しいパスワードであることを確認
         {
-            Unfreeze();
+            Unfreeze(); // プレイヤーの凍結を解除する
         }
         else
         {
@@ -131,6 +166,8 @@ public class FreezeAndInput : MonoBehaviour
         feedbackText.gameObject.SetActive(true);
         inputField.ActivateInputField();
     }
+
+
     private bool IsSpaceKeyPressedNearTileType3()
     {
         // プレイヤーの現在の位置を取得
@@ -154,8 +191,6 @@ public class FreezeAndInput : MonoBehaviour
         return false;
     }
 
-    // 指定された位置のタイルがタイプ3かどうかをチェックするメソッド
-    // 指定された位置のタイルがタイプ3かどうかをチェックするメソッド
     private bool IsTileType3(Vector3 position)
     {
         // Groundクラスのインスタンスを取得
@@ -174,7 +209,4 @@ public class FreezeAndInput : MonoBehaviour
         }
         return false;
     }
-
-
-
 }

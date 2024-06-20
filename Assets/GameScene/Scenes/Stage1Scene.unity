@@ -514,7 +514,7 @@ MonoBehaviour:
   inputPanel: {fileID: 1416694586}
   inputField: {fileID: 564796958}
   feedbackText: {fileID: 682611833}
-  anserPanel: 612
+  answerPanel: 1
 --- !u!1001 &1581850391
 PrefabInstance:
   m_ObjectHideFlags: 0
