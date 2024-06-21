@@ -1,222 +1,3 @@
-//using UnityEngine;
-//using UnityEngine.SceneManagement;
-//using System.Collections;
-
-//public class Player : MonoBehaviour
-//{
-//    [SerializeField] private float _speed = 5f; // プレイヤーの移動スピード
-//    private Vector2 targetPos; // プレイヤーの目標位置
-//    [SerializeField] private Vector2 initialPosition = new Vector2(1, 1); // プレイヤーの初期位置
-//    private Vector2 minPosition = new Vector2(0, 0); // 最小の移動可能な範囲
-//    private Vector2 maxPosition = new Vector2(22, 9); // 最大の移動可能な範囲
-
-//    private bool isFrozen = false; // プレイヤーが凍結されているかどうかのフラグ
-//    private bool goalReached = false; // ゴールに到達したかどうかのフラグ
-
-//    private enum InputState
-//    {
-//        Moving,
-//        SpaceKey,
-//        GoalCheck
-//    }
-
-//    private void Start()
-//    {
-//        transform.position = initialPosition;
-//        targetPos = initialPosition;
-//    }
-
-//    void Update()
-//    {
-//        if (goalReached || isFrozen)
-//            return;
-
-//        switch (GetInputState())
-//        {
-//            case InputState.Moving:
-//                UpdateMovement();
-//                break;
-//            case InputState.SpaceKey:
-//                CheckSpaceKeyPressed();
-//                break;
-//            case InputState.GoalCheck:
-//                CheckGoalReached();
-//                break;
-//            default:
-//                break;
-//        }
-//    }
-
-//    private InputState GetInputState()
-//    {
-//        if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D))
-//        {
-//            return InputState.Moving;
-//        }
-//        else if (Input.GetKeyDown(KeyCode.Space))
-//        {
-//            return InputState.SpaceKey;
-//        }
-//        else
-//        {
-//            return InputState.GoalCheck;
-//        }
-//    }
-
-//    private void UpdateMovement()
-//    {
-//        Vector2 move = Vector2.zero;
-
-//        if (Input.GetKey(KeyCode.W))
-//        {
-//            move.y = 1;
-//        }
-//        else if (Input.GetKey(KeyCode.S))
-//        {
-//            move.y = -1;
-//        }
-
-//        if (Input.GetKey(KeyCode.A))
-//        {
-//            move.x = -1;
-//        }
-//        else if (Input.GetKey(KeyCode.D))
-//        {
-//            move.x = 1;
-//        }
-
-//        if (move != Vector2.zero)
-//        {
-//            Vector2 newPos = targetPos + move;
-//            if (IsMoveValid(newPos))
-//            {
-//                targetPos = newPos;
-//            }
-//        }
-
-//        Move(targetPos);
-//    }
-
-//    private void Move(Vector2 targetPosition)
-//    {
-//        transform.position = Vector2.MoveTowards(transform.position, targetPosition, _speed * Time.deltaTime);
-//    }
-
-//    private void CheckSpaceKeyPressed()
-//    {
-//        int currentX = Mathf.RoundToInt(transform.position.x);
-//        int currentY = Mathf.RoundToInt(transform.position.y);
-
-//        if (Ground.map[currentY, currentX] == 6)
-//        {
-//            FreezeAndInput freezeAndInput = FindObjectOfType<FreezeAndInput>();
-//            if (freezeAndInput != null)
-//            {
-//                freezeAndInput.Freeze();
-//                SetFrozen(true);
-//                StartCoroutine(WaitAndUnfreeze(freezeAndInput));
-//            }
-//        }
-//        else if (HasNearbyGimmickWall(currentX, currentY))
-//        {
-//            FreezeAndInput freezeAndInput = FindObjectOfType<FreezeAndInput>();
-//            if (freezeAndInput != null)
-//            {
-//                freezeAndInput.Freeze();
-//                SetFrozen(true);
-//            }
-//        }
-//    }
-
-//    private void CheckGoalReached()
-//    {
-//        int targetX = Mathf.RoundToInt(targetPos.x);
-//        int targetY = Mathf.RoundToInt(targetPos.y);
-
-//        if (Mathf.Approximately(transform.position.x, targetPos.x) && Mathf.Approximately(transform.position.y, targetPos.y))
-//        {
-//            if (Ground.map[targetY, targetX] == 2)
-//            {
-//                GameObject[] player1Objects = GameObject.FindGameObjectsWithTag("Player1");
-//                GameObject[] player2Objects = GameObject.FindGameObjectsWithTag("Player2");
-
-//                bool player1AtGoal = false;
-//                bool player2AtGoal = false;
-
-//                foreach (GameObject p1 in player1Objects)
-//                {
-//                    Player p1Script = p1.GetComponent<Player>();
-//                    int playerX = Mathf.RoundToInt(p1Script.GetTargetPos().x);
-//                    int playerY = Mathf.RoundToInt(p1Script.GetTargetPos().y);
-
-//                    if (Ground.map[playerY, playerX] == 2)
-//                    {
-//                        player1AtGoal = true;
-//                        break;
-//                    }
-//                }
-
-//                foreach (GameObject p2 in player2Objects)
-//                {
-//                    Player p2Script = p2.GetComponent<Player>();
-//                    int playerX = Mathf.RoundToInt(p2Script.GetTargetPos().x);
-//                    int playerY = Mathf.RoundToInt(p2Script.GetTargetPos().y);
-
-//                    if (Ground.map[playerY, playerX] == 2)
-//                    {
-//                        player2AtGoal = true;
-//                        break;
-//                    }
-//                }
-
-//                if (player1AtGoal && player2AtGoal)
-//                {
-//                    Debug.Log("Both players reached the goal. Loading ClearScene...");
-//                    SceneManager.LoadScene("ClearScene");
-//                }
-//            }
-//        }
-//    }
-
-//    private IEnumerator WaitAndUnfreeze(FreezeAndInput freezeAndInput)
-//    {
-//        yield return new WaitForSeconds(2f);
-
-//        if (freezeAndInput.IsPasswordCorrect())
-//        {
-//            freezeAndInput.Unfreeze();
-//            SetFrozen(false);
-//        }
-//        else
-//        {
-//            Debug.Log("Password incorrect. Player remains frozen.");
-//        }
-//    }
-
-//    private bool IsMoveValid(Vector2 newPos)
-//    {
-//        int x = Mathf.RoundToInt(newPos.x);
-//        int y = Mathf.RoundToInt(newPos.y);
-
-//        return x >= minPosition.x && x <= maxPosition.x && y >= minPosition.y && y <= maxPosition.y &&
-//               (Ground.map[y, x] == 1 || Ground.map[y, x] == 2 || Ground.map[y, x] == 6);
-//    }
-
-//    private bool HasNearbyGimmickWall(int x, int y)
-//    {
-//        return Ground.map[y, x - 1] == 3 || Ground.map[y, x + 1] == 3 || Ground.map[y - 1, x] == 3 || Ground.map[y + 1, x] == 3;
-//    }
-
-//    public Vector2 GetTargetPos()
-//    {
-//        return targetPos;
-//    }
-
-//    public void SetFrozen(bool frozen)
-//    {
-//        isFrozen = frozen;
-//    }
-//}
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
@@ -236,13 +17,11 @@ public class Player : MonoBehaviour
     private bool goalReached = false; // ゴールに到達したかどうかのフラグ
 
     private bool isFrozen = false; // プレイヤーが凍結されているかどうかのフラグ
-    private int a = 1;
-
-    private enum InputState
+    public enum SelectScene
     {
-        Moving,
-        SpaceKey,
-        GoalCheck
+        ProccesInput,
+        CheckSpaceKey,
+        CheckGoal
     }
 
 
@@ -250,6 +29,7 @@ public class Player : MonoBehaviour
     {
         isFrozen = frozen;
     }
+    private SelectScene currentScene = SelectScene.ProccesInput;
 
     private void Start()
     {
@@ -260,26 +40,43 @@ public class Player : MonoBehaviour
     void Update()
     {
         if (goalReached || isFrozen) return;
-        switch(a)
+
+        switch (currentScene)
         {
-            case 1:
+            case SelectScene.ProccesInput:
                 ProcessMovementInput();
-            case 2:
-                //番号入力マスの近くでスペースキーが押された場合の処理
-                CheckSpaceKeyPressed();
-                a = 1;
-            case 3:
-                // ゴールに到達したかどうかをチェック
+                if (CheckSpaceKeyPressed())
+                {
+                    currentScene = SelectScene.CheckSpaceKey;
+                    Debug.Log("ここには通りました。");
+                }
+                break;
+            case SelectScene.CheckSpaceKey:
+                ProcessMovementInput();
+                if (CheckSpaceKeyPressed())
+                {
+                    currentScene = SelectScene.CheckGoal;
+                    Debug.Log("ここだ！！");
+                }
+                else
+                {
+                    currentScene = SelectScene.ProccesInput; // パスワード入力が終わったら再び入力処理に戻る
+                    Debug.Log("ここは通りましたよ。");
+                }
+                break;
+            case SelectScene.CheckGoal:
                 CheckGoalReached();
+                if (!goalReached) // ゴールに到達していない場合、再び入力処理に戻る
+                {
+                    currentScene = SelectScene.ProccesInput;
+                }
+                break;
             default:
                 break;
         }
-        
 
-
-
-       
     }
+
 
     private void ProcessMovementInput()
     {
@@ -420,8 +217,10 @@ public class Player : MonoBehaviour
         return targetPos;
     }
 
-    private void CheckSpaceKeyPressed()
+    private bool CheckSpaceKeyPressed()
     {
+        bool spaceKeyPressed = false; // スペースキーが押されたかどうかのフラグ
+
         if (Input.GetKeyDown(KeyCode.Space))
         {
             int currentX = Mathf.RoundToInt(transform.position.x);
@@ -441,6 +240,8 @@ public class Player : MonoBehaviour
                     // ここでパスワード入力の後にUnfreezeメソッドを呼び出す
                     // これにより、パスワードが正しい場合にプレイヤーが動けるようになる
                     StartCoroutine(WaitAndUnfreeze(freezeAndInput));
+
+                    spaceKeyPressed = true; // スペースキーが押されたとフラグを立てる
                 }
             }
             else
@@ -456,22 +257,32 @@ public class Player : MonoBehaviour
                         // Freezeメソッドを呼び出す
                         freezeAndInput.Freeze();
                         SetFrozen(true); // プレイヤーを凍結状態にする
+
+                        spaceKeyPressed = true; // スペースキーが押されたとフラグを立てる
                     }
                 }
             }
         }
+
+        return spaceKeyPressed; // スペースキーが押されたかどうかの結果を返す
     }
+
+
 
     private IEnumerator WaitAndUnfreeze(FreezeAndInput freezeAndInput)
     {
         // パスワードが正しいかどうかを確認するための待機時間
-        yield return new WaitForSeconds(2f); // 例として2秒待つ
+        yield return new WaitForSeconds(8f); // 例として2秒待つ
 
         // パスワードが正しい場合、Unfreezeメソッドを呼び出す
         if (freezeAndInput.IsPasswordCorrect())
         {
             freezeAndInput.Unfreeze();
             SetFrozen(false); // プレイヤーの凍結を解除する
+
+            // ここで処理を移動する
+            currentScene = SelectScene.ProccesInput;
+            Debug.Log("ここには通りました。");
         }
         else
         {
@@ -480,6 +291,7 @@ public class Player : MonoBehaviour
             // ここで何かしらのエラーメッセージなどを表示するなどの処理を行う
         }
     }
+
 
     Vector3 FindNearestPasswordPosition()
     {
