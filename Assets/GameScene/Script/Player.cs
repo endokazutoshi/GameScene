@@ -44,11 +44,13 @@ public class Player : MonoBehaviour
         switch (currentScene)
         {
             case SelectScene.ProccesInput:
+               // Debug.Log("現在はここにいます。");
                 ProcessMovementInput();
                 if (CheckSpaceKeyPressed())
                 {
                     currentScene = SelectScene.CheckSpaceKey;
                     Debug.Log("ここには通りました。");
+                    ProcessMovementInput();
                 }
                 break;
             case SelectScene.CheckSpaceKey:
@@ -237,8 +239,7 @@ public class Player : MonoBehaviour
                     freezeAndInput.Freeze();
                     SetFrozen(true); // プレイヤーを凍結状態にする
 
-                    // ここでパスワード入力の後にUnfreezeメソッドを呼び出す
-                    // これにより、パスワードが正しい場合にプレイヤーが動けるようになる
+                    // Coroutineを開始する
                     StartCoroutine(WaitAndUnfreeze(freezeAndInput));
 
                     spaceKeyPressed = true; // スペースキーが押されたとフラグを立てる
@@ -258,6 +259,9 @@ public class Player : MonoBehaviour
                         freezeAndInput.Freeze();
                         SetFrozen(true); // プレイヤーを凍結状態にする
 
+                        // Coroutineを開始する
+                        StartCoroutine(WaitAndUnfreeze(freezeAndInput));
+
                         spaceKeyPressed = true; // スペースキーが押されたとフラグを立てる
                     }
                 }
@@ -271,26 +275,51 @@ public class Player : MonoBehaviour
 
     private IEnumerator WaitAndUnfreeze(FreezeAndInput freezeAndInput)
     {
-        // パスワードが正しいかどうかを確認するための待機時間
-        yield return new WaitForSeconds(8f); // 例として2秒待つ
+        bool passwordCorrect = false;
 
-        // パスワードが正しい場合、Unfreezeメソッドを呼び出す
-        if (freezeAndInput.IsPasswordCorrect())
+        // パスワードが正しいかどうかを確認するまでループする
+        while (!passwordCorrect)
         {
-            freezeAndInput.Unfreeze();
-            SetFrozen(false); // プレイヤーの凍結を解除する
+            // ESCキーが押されたかどうかをチェックする
+            if (Input.GetKeyDown(KeyCode.Escape))
+            {
+                // ESCキーが押された場合の処理
+                // ここでは凍結状態を解除しないまま、処理を終了し操作画面に戻る
+                Debug.Log("ESCキーが押されたため、操作画面に戻ります。");
 
-            // ここで処理を移動する
-            currentScene = SelectScene.ProccesInput;
-            Debug.Log("ここには通りました。");
-        }
-        else
-        {
-            // パスワードが正しくない場合の処理
-            Debug.Log("Password incorrect. Player remains frozen.");
-            // ここで何かしらのエラーメッセージなどを表示するなどの処理を行う
+                // フリーズ画面を閉じる処理
+                CloseFreezeScreen(); // このメソッドは適切なものに置き換えてください
+
+                SetFrozen(false); // プレイヤーの凍結を解除する
+
+                yield break; // Coroutineを終了して元の処理に戻る
+            }
+
+            // パスワードが正しいかどうかを即座にチェックする
+            if (freezeAndInput.IsPasswordCorrect())
+            {
+                freezeAndInput.Unfreeze();
+                SetFrozen(false); // プレイヤーの凍結を解除する
+
+                // パスワードが正しい場合の処理
+                currentScene = SelectScene.ProccesInput;
+                Debug.Log("パスワードが正しいため、アンフリーズされました。ここには通りました。");
+
+                passwordCorrect = true; // パスワードが正しいことをフラグで示す
+            }
+            else
+            {
+                // パスワードが正しくない場合の処理
+                //Debug.Log("パスワードが正しくありません。プレイヤーはまだ凍結されています。");
+                SetFrozen(true); // プレイヤーを凍結状態にしたままとする
+
+                yield return null; // 1フレーム待機する
+            }
         }
     }
+
+
+
 
 
     Vector3 FindNearestPasswordPosition()
@@ -323,4 +352,18 @@ public class Player : MonoBehaviour
         Ground.map[y - 1, x] == 3 || // 上にギミックの壁があるかチェック
         Ground.map[y + 1, x] == 3; // 下にギミックの壁があるかチェック
     }
+
+
+        public void CloseFreezeScreen()
+        {
+            FreezeAndInput freezeAndInput = FindObjectOfType<FreezeAndInput>();
+            if (freezeAndInput != null)
+            {
+                freezeAndInput.CloseFreezeScreen();
+            }
+        }
+
+
+
 }
+

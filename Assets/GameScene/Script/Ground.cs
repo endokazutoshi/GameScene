@@ -57,26 +57,26 @@ public class Ground : MonoBehaviour
                 if (tileType == 0) // mapの情報で0だった場合は壁を配置する
                 {
                     Instantiate(_wallPrefab, new Vector3(length, width, 0), Quaternion.identity, transform); // 壁の表示
-                    Debug.Log("壁マスを配置: " + new Vector3(length, width, 0));
+                    //Debug.Log("壁マスを配置: " + new Vector3(length, width, 0));
                 }
 
                 if (tileType == 1) // mapの情報で1だった場合は進める
                 {
                     Instantiate(_tilePrefab, new Vector3(length, width, 0), Quaternion.identity, transform); // 移動できるマス(タイル)の表示
-                    Debug.Log("タイルマスを配置: " + new Vector3(length, width, 0));
+                    //Debug.Log("タイルマスを配置: " + new Vector3(length, width, 0));
                 }
 
                 if (tileType == 2) // mapの情報で2だった場合はゴールする(条件として両方のPlayerがゴールしないといけない)
                 {
                     Vector3 goalPosition = new Vector3(length, width, 0);
                     StartCoroutine(SwitchGoalPrefab(goalPosition));
-                    Debug.Log("ゴールマスを配置: " + goalPosition);
+                    //Debug.Log("ゴールマスを配置: " + goalPosition);
                 }
 
                 if (tileType == 3) // mapの情報で3だった場合はギミックを展開する
                 {
                     PlacePassword(new Vector3(length, width, 0));
-                    Debug.Log("暗証番号を配置: " + new Vector3(length, width, 0));
+                    //Debug.Log("暗証番号を配置: " + new Vector3(length, width, 0));
                 }
 
                 if (tileType == 4)
