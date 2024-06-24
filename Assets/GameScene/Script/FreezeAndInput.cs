@@ -36,19 +36,7 @@ public class FreezeAndInput : MonoBehaviour
         inputField.onEndEdit.AddListener(OnEndEdit);
     }
 
-    public class Player : MonoBehaviour
-    {
-        // 他のコードやメソッドなどがあると想定しています
 
-        public void CloseFreezeScreen()
-        {
-            FreezeAndInput freezeAndInput = FindObjectOfType<FreezeAndInput>();
-            if (freezeAndInput != null)
-            {
-                freezeAndInput.CloseFreezeScreen();
-            }
-        }
-    }
 
 
     void Update()
@@ -225,6 +213,7 @@ public class FreezeAndInput : MonoBehaviour
         return false;
     }
 
+
     public void CloseFreezeScreen()
     {
         // フリーズ画面を閉じる処理を実装
@@ -237,6 +226,5 @@ public class FreezeAndInput : MonoBehaviour
         // フリーズ状態を解除したことをログに出力
         Debug.Log("フリーズ画面を閉じました。");
     }
-
 
 }
