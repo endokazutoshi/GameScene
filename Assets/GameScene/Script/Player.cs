@@ -44,26 +44,24 @@ public class Player : MonoBehaviour
         switch (currentScene)
         {
             case SelectScene.ProccesInput:
-               // Debug.Log("現在はここにいます。");
+                Debug.Log("プレイヤーの操作に戻ります。");
                 ProcessMovementInput();
                 if (CheckSpaceKeyPressed())
                 {
                     currentScene = SelectScene.CheckSpaceKey;
-                    Debug.Log("ここには通りました。");
-                    ProcessMovementInput();
+                    Debug.Log("Updateのswitch文の一つ目のif文");
                 }
                 break;
             case SelectScene.CheckSpaceKey:
-                ProcessMovementInput();
                 if (CheckSpaceKeyPressed())
                 {
                     currentScene = SelectScene.CheckGoal;
-                    Debug.Log("ここだ！！");
+                    Debug.Log("Updateのswitch文の2つ目のif文");
                 }
                 else
                 {
                     currentScene = SelectScene.ProccesInput; // パスワード入力が終わったら再び入力処理に戻る
-                    Debug.Log("ここは通りましたよ。");
+                    Debug.Log("パスワードが終わった際に出てくるelse文");
                 }
                 break;
             case SelectScene.CheckGoal:
@@ -77,6 +75,8 @@ public class Player : MonoBehaviour
                 break;
         }
 
+        // ゴールに到達しているかどうかを毎フレームチェック
+        CheckGoalReached();
     }
 
 
@@ -362,8 +362,6 @@ public class Player : MonoBehaviour
                 freezeAndInput.CloseFreezeScreen();
             }
         }
-
-
 
 }
 
