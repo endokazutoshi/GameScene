@@ -17,6 +17,9 @@ public class Player : MonoBehaviour
     private bool goalReached = false; // ゴールに到達したかどうかのフラグ
 
     private bool isFrozen = false; // プレイヤーが凍結されているかどうかのフラグ
+
+   
+
     public enum SelectScene
     {
         ProccesInput,
@@ -44,7 +47,7 @@ public class Player : MonoBehaviour
         switch (currentScene)
         {
             case SelectScene.ProccesInput:
-                Debug.Log("プレイヤーの操作に戻ります。");
+                //Debug.Log("プレイヤーの操作に戻ります。");
                 ProcessMovementInput();
                 if (CheckSpaceKeyPressed())
                 {
@@ -266,6 +269,20 @@ public class Player : MonoBehaviour
                     }
                 }
             }
+
+            if (Ground.map[currentY, currentX] == 7)
+            {
+                // tileTypeが7の場合の処理をここに記述する
+                Debug.Log("This tile is a lever tile (tileType == 7). Perform lever action here.");
+                // 例えば、レバーを操作する処理を呼び出すなど
+                // LeverAction();
+
+                spaceKeyPressed = true; // スペースキーが押されたとフラグを立てる
+            }
+            else
+            {
+                
+            }
         }
 
         return spaceKeyPressed; // スペースキーが押されたかどうかの結果を返す
@@ -318,7 +335,21 @@ public class Player : MonoBehaviour
         }
     }
 
+    public Ground ground;
+    private void EnterPassword(Vector3 position)
+    {
+        // 現在の位置が暗証番号タイルに対応しているか確認
+        if (Ground.map[(int)position.y, (int)position.x] == 6)
+        {
+            // 正しい暗証番号が入力された場合の処理
+            int x = (int)position.x;
+            int y = (int)position.y;
+            int newTileType = 1; // 例: 変更したいタイルタイプのインデックスに変更
 
+            // 指定した位置に新しいタイルタイプをGround.csで設定する
+            ground.UpdateTileType(x, y, newTileType);
+        }
+    }
 
 
 
@@ -350,11 +381,15 @@ public class Player : MonoBehaviour
         return Ground.map[y, x - 1] == 3 || // 左にギミックの壁があるかチェック
         Ground.map[y, x + 1] == 3 || // 右にギミックの壁があるかチェック
         Ground.map[y - 1, x] == 3 || // 上にギミックの壁があるかチェック
-        Ground.map[y + 1, x] == 3; // 下にギミックの壁があるかチェック
+        Ground.map[y + 1, x] == 3 ||// 下にギミックの壁があるかチェック
+        Ground.map[y, x - 1] == 7 || // 左にギミックの壁があるかチェック
+        Ground.map[y, x + 1] == 7 || // 右にギミックの壁があるかチェック
+        Ground.map[y - 1, x] == 7 || // 上にギミックの壁があるかチェック
+        Ground.map[y + 1, x] == 7; // 下にギミックの壁があるかチェック
     }
 
 
-        public void CloseFreezeScreen()
+    public void CloseFreezeScreen()
         {
             FreezeAndInput freezeAndInput = FindObjectOfType<FreezeAndInput>();
             if (freezeAndInput != null)

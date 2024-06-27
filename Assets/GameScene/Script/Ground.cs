@@ -6,22 +6,32 @@ public class Ground : MonoBehaviour
 {
     [SerializeField] private GameObject _wallPrefab;
     [SerializeField] private GameObject _tilePrefab;
-    [SerializeField] private GameObject[] _goalPrefabs; // ゴール用の3つのPrefabをセットするための配列
+    [SerializeField] private GameObject[] _goalPrefabs;
     [SerializeField] private GameObject _PIN;
     [SerializeField] private GameObject _deadPrefab;
     [SerializeField] private GameObject[] _switchPrefabs;
-    [SerializeField] private GameObject _leverPrefab; // レバーのPrefabを追加
-
+    [SerializeField] private GameObject _leverPrefabOn;
+    [SerializeField] private GameObject _leverPrefabOff;
     [SerializeField] private float _goalSceneTime;
+    [SerializeField] private int mapWidth;
+    [SerializeField] private int mapHeight;
+    [SerializeField] private int _spawnPositionX; // Inspectorから設定可能な出現位置X
+    [SerializeField] private int _spawnPositionY; // Inspectorから設定可能な出現位置Y
+    [SerializeField] private int _tileTypeToSpawn; // Inspectorから設定可能な出現するタイルのタイプ
+
+    private GameObject leverInstance;
+
+    private bool leverOn = false;
+
+    [SerializeField] private GameObject wallPrefab;
+    [SerializeField] private GameObject floorPrefab;
+    [SerializeField] private GameObject goalPrefab;
 
     const int _nLengthStart = 1;
     const int _nWidthStart = 1;
     const int _nLengthEnd = 22;
     const int _nWidthEnd = 9;
     const int _nCenter = 11;
-
-    [SerializeField] private int _length;
-    [SerializeField] private int _width;
 
     // 2Dマップデータ:
     //0=壁、1=床、2=ゴール、3=暗号、4=死亡、5=スイッチ、6=移動キーぐちゃぐちゃマス、7=レバー
@@ -34,7 +44,7 @@ public class Ground : MonoBehaviour
         {0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0},
         {0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0},
         {0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0},
-        {0, 3, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0},
+        {0, 3, 0, 0, 0, 1, 1, 1, 1, 1, 7, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0},
         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
     };
 
@@ -89,19 +99,13 @@ public class Ground : MonoBehaviour
                 // レバーの追加
                 if (tileType == 7)
                 {
-                    Vector3 leverPosition = new Vector3(length, width, 0);
-                    PlaceLever(leverPosition);
+                   leverInstance = Instantiate(_leverPrefabOff, new Vector3(length, width, 0), Quaternion.identity, transform);
+                    // ここで leverInstance を適切に処理するための追加の設定を行う可能性があります
                 }
             }
         }
     }
 
-    // レバーを配置するメソッド
-    private void PlaceLever(Vector3 position)
-    {
-        Instantiate(_leverPrefab, position, Quaternion.identity, transform);
-        Debug.Log("レバーを配置: " + position);
-    }
 
     IEnumerator SwitchGoalPrefab(Vector3 position)
     {
@@ -135,15 +139,41 @@ public class Ground : MonoBehaviour
         // 暗証番号の周囲でスペースキーが押されたら暗証番号パネルを表示
         if (IsSpaceKeyPressedNearPosition(position))
         {
-            // FreezeAndInputクラスのインスタンスを取得
-            FreezeAndInput freezeAndInput = FindObjectOfType<FreezeAndInput>();
-            if (freezeAndInput != null)
-            {
-                // Freezeメソッドを呼び出す
-                freezeAndInput.Freeze();
-            }
+            // Inspectorから設定された位置とタイルタイプに基づいて更新する
+            UpdateTileTypeAtPosition(_spawnPositionX, _spawnPositionY, _tileTypeToSpawn);
         }
     }
+
+    public void UpdateTileType(int x, int y, int newTileType)
+    {
+        // xとyが有効な範囲内にあることを確認
+        if (x >= 0 && x < mapWidth && y >= 0 && y < mapHeight)
+        {
+            map[y, x] = newTileType; // マップを新しいタイルタイプで更新する
+
+            // タイルタイプに基づいて対応するプレハブをインスタンス化する
+            switch (newTileType)
+            {
+                case 0: // 壁
+                    Instantiate(wallPrefab, new Vector3(x, y, 0), Quaternion.identity, transform);
+                    break;
+                case 1: // 床
+                    Instantiate(floorPrefab, new Vector3(x, y, 0), Quaternion.identity, transform);
+                    break;
+                case 2: // ゴール
+                    Instantiate(goalPrefab, new Vector3(x, y, 0), Quaternion.identity, transform);
+                    break;
+                    // 必要に応じて他のタイルタイプに対する処理を追加する
+            }
+        }
+        else
+        {
+            Debug.LogError("タイルタイプの更新に無効な位置: (" + x + ", " + y + ")");
+        }
+    }
+
+
+
 
     // 指定された位置の周囲でスペースキーが押されたかどうかをチェックするメソッド
     private bool IsSpaceKeyPressedNearPosition(Vector3 position)
@@ -188,8 +218,36 @@ public class Ground : MonoBehaviour
     {
         get { return map.GetLength(1); }
     }
+
     public int Length
     {
         get { return map.GetLength(0); }
     }
+
+    // レバーのクリック検出とトグル処理の例
+    void OnMouseDown()
+    {
+        ToggleLeverState();
+    }
+
+    void ToggleLeverState()
+    {
+        leverOn = !leverOn; // 現在の状態を反転させる
+
+        // レバーの外観を切り替える
+        if (leverOn)
+        {
+            Destroy(leverInstance); // 現在のレバーを削除
+            leverInstance = Instantiate(_leverPrefabOn, transform.position, Quaternion.identity, transform);
+        }
+        else
+        {
+            Destroy(leverInstance); // 現在のレバーを削除
+            leverInstance = Instantiate(_leverPrefabOff, transform.position, Quaternion.identity, transform);
+        }
+
+        // 他のゲームオブジェクトに対する影響をここで処理することもできます
+    }
 }
+
+
