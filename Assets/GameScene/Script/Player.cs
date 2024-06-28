@@ -1,3 +1,5 @@
+//ごちゃごちゃ過ぎてマジで意味わからんPlayerのスクリプト（もういらない）
+
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;

@@ -1,3 +1,4 @@
+//マップの情報を細かく設定できるマップスクリプト
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
@@ -33,6 +34,9 @@ public class Ground : MonoBehaviour
     const int _nWidthEnd = 9;
     const int _nCenter = 11;
 
+    [SerializeField] private int _length;
+    [SerializeField] private int _width;
+
     // 2Dマップデータ:
     //0=壁、1=床、2=ゴール、3=暗号、4=死亡、5=スイッチ、6=移動キーぐちゃぐちゃマス、7=レバー
     public static int[,] map = {
@@ -44,7 +48,7 @@ public class Ground : MonoBehaviour
         {0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 1, 0},
         {0, 1, 0, 0, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0},
         {0, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0},
-        {0, 3, 0, 0, 0, 1, 1, 1, 1, 1, 7, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0},
+        {0, 3, 0, 0, 0, 1, 1, 1, 4, 1, 7, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0},
         {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
     };
 
@@ -89,6 +93,7 @@ public class Ground : MonoBehaviour
                 if (tileType == 4)
                 {
                     Vector3 deadPosition = new Vector3(length, width, 0);
+                    Instantiate(_deadPrefab, new Vector3(length, width, 0), Quaternion.identity, transform); // 移動できるマス(タイル)の表示
                 }
 
                 if (tileType == 5)
@@ -96,10 +101,10 @@ public class Ground : MonoBehaviour
                     Switch(new Vector3(length, width, 0));
                 }
 
-                // レバーの追加
+                //レバーの追加
                 if (tileType == 7)
                 {
-                   leverInstance = Instantiate(_leverPrefabOff, new Vector3(length, width, 0), Quaternion.identity, transform);
+                    leverInstance = Instantiate(_leverPrefabOff, new Vector3(length, width, 0), Quaternion.identity, transform);
                     // ここで leverInstance を適切に処理するための追加の設定を行う可能性があります
                 }
             }
@@ -140,7 +145,7 @@ public class Ground : MonoBehaviour
         if (IsSpaceKeyPressedNearPosition(position))
         {
             // Inspectorから設定された位置とタイルタイプに基づいて更新する
-            UpdateTileTypeAtPosition(_spawnPositionX, _spawnPositionY, _tileTypeToSpawn);
+            UpdateTileType(_spawnPositionX, _spawnPositionY, _tileTypeToSpawn);
         }
     }
 

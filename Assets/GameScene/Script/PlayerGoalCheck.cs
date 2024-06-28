@@ -1,32 +1,40 @@
+//プレイヤーのゴールの判定を行っているスクリプト
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class GoalManager : MonoBehaviour
+public class PlayerGoalCheck : MonoBehaviour
 {
-    public static GoalManager instance; // シングルトンインスタンス
+    private bool goalReached = false; // ゴールに到達したかどうかのフラグ
+    private PlayerMovement playerMovement;
 
-    private void Awake()
+    private void Start()
     {
-        // シングルトンパターンの実装
-        if (instance == null)
+        // PlayerMovementコンポーネントを取得
+        playerMovement = GetComponent<PlayerMovement>();
+        if (playerMovement == null)
         {
-            instance = this;
-        }
-        else
-        {
-            Destroy(gameObject);
+            Debug.LogError("PlayerMovement component not found on this GameObject. Please ensure PlayerMovement is attached.");
         }
     }
 
-    public void CheckGoalReached(Player player)
+    private void Update()
     {
-        int targetX = Mathf.RoundToInt(player.GetTargetPos().x);
-        int targetY = Mathf.RoundToInt(player.GetTargetPos().y);
-
-        // プレイヤーが目標位置に完全に到達しているかどうかをチェック
-        if (Mathf.Approximately(player.transform.position.x, player.GetTargetPos().x) && Mathf.Approximately(player.transform.position.y, player.GetTargetPos().y))
+        if (!goalReached) // まだゴールに到達していない場合にのみチェックを行う
         {
-            // プレイヤーがGoalのマスに到達したかどうかをチェック
+            CheckGoalReached();
+        }
+    }
+
+    private void CheckGoalReached()
+    {
+        if (playerMovement == null) return;
+
+        Vector2 targetPos = playerMovement.GetTargetPos();
+        int targetX = Mathf.RoundToInt(targetPos.x);
+        int targetY = Mathf.RoundToInt(targetPos.y);
+
+        if (Mathf.Approximately(transform.position.x, targetPos.x) && Mathf.Approximately(transform.position.y, targetPos.y))
+        {
             if (Ground.map[targetY, targetX] == 2)
             {
                 GameObject[] player1Objects = GameObject.FindGameObjectsWithTag("Player1");
@@ -37,7 +45,8 @@ public class GoalManager : MonoBehaviour
 
                 foreach (GameObject p1 in player1Objects)
                 {
-                    Player p1Script = p1.GetComponent<Player>();
+                    PlayerMovement p1Script = p1.GetComponent<PlayerMovement>();
+                    if (p1Script == null) continue;
                     int playerX = Mathf.RoundToInt(p1Script.GetTargetPos().x);
                     int playerY = Mathf.RoundToInt(p1Script.GetTargetPos().y);
 
@@ -50,7 +59,8 @@ public class GoalManager : MonoBehaviour
 
                 foreach (GameObject p2 in player2Objects)
                 {
-                    Player p2Script = p2.GetComponent<Player>();
+                    PlayerMovement p2Script = p2.GetComponent<PlayerMovement>();
+                    if (p2Script == null) continue;
                     int playerX = Mathf.RoundToInt(p2Script.GetTargetPos().x);
                     int playerY = Mathf.RoundToInt(p2Script.GetTargetPos().y);
 
@@ -63,7 +73,7 @@ public class GoalManager : MonoBehaviour
 
                 if (player1AtGoal && player2AtGoal)
                 {
-                    // 両方のプレイヤーがゴールに到達した場合にゴール処理を実行
+                    goalReached = true; // 両方のプレイヤーがゴールに到達した場合にフラグを設定
                     Debug.Log("Both players reached the goal. Loading ClearScene...");
                     SceneManager.LoadScene("ClearScene");
                 }

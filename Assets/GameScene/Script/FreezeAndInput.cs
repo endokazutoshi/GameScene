@@ -1,3 +1,4 @@
+//プレイヤーをフリーズ、移動不可にさせるスクリプト
 using UnityEngine.UI;
 using UnityEngine;
 
