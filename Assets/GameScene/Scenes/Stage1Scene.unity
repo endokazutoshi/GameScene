@@ -143,11 +143,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 4612875646587997355, guid: d13fc5542ec55e841a75e669beb1031a, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: -6.62
       objectReference: {fileID: 0}
     - target: {fileID: 4612875646587997355, guid: d13fc5542ec55e841a75e669beb1031a, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: -1.66
       objectReference: {fileID: 0}
     - target: {fileID: 4612875646587997355, guid: d13fc5542ec55e841a75e669beb1031a, type: 3}
       propertyPath: m_LocalPosition.z
@@ -586,7 +586,7 @@ MonoBehaviour:
   inputPanel: {fileID: 1416694586}
   inputField: {fileID: 564796958}
   feedbackText: {fileID: 682611833}
-  answerPanel: 1
+  answerPanel: 3814
 --- !u!1001 &1581850391
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -13,7 +13,13 @@ public class PlayerGimmicks : MonoBehaviour
 
     private void Update()
     {
-        if (isFrozen) return;
+        Debug.Log("Update called"); // デバッグログ
+
+        if (isFrozen)
+        {
+            Debug.Log("Player is frozen"); // デバッグログ
+            return;
+        }
 
         int currentX = Mathf.RoundToInt(transform.position.x);
         int currentY = Mathf.RoundToInt(transform.position.y);
@@ -21,6 +27,8 @@ public class PlayerGimmicks : MonoBehaviour
         // スペースキーが押されたら周囲のタイルの種類をチェック
         if (Input.GetKeyDown(KeyCode.Space))
         {
+            Debug.Log("Space key pressed"); // デバッグログ
+
             // 周囲のギミックの壁があるかどうかをチェック
             if (HasNearbyGimmickWall(currentX, currentY))
             {
@@ -29,9 +37,11 @@ public class PlayerGimmicks : MonoBehaviour
                 switch (tileNumber)
                 {
                     case 3:
+                        Debug.Log("PerformFreezeAction called"); // デバッグログ
                         PerformFreezeAction();
                         break;
                     case 7:
+                        Debug.Log("PerformLeverAction called"); // デバッグログ
                         PerformLeverAction();
                         break;
                     default:
@@ -102,7 +112,6 @@ public class PlayerGimmicks : MonoBehaviour
             freezeAndInput.CloseFreezeScreen();
         }
     }
-
 
     private bool HasNearbyGimmickWall(int x, int y)
     {
