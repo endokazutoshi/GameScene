@@ -687,6 +687,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _speed: 5
   initialPosition: {x: 2, y: 2}
+  positionToChange: {x: 2, y: 2}
+  newTileType: 2
   ground: {fileID: 1430184507}
 --- !u!212 &1646936444
 SpriteRenderer:
@@ -828,6 +830,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _speed: 5
   initialPosition: {x: 13, y: 7}
+  positionToChange: {x: 19, y: 2}
+  newTileType: 2
   ground: {fileID: 1430184507}
 --- !u!212 &1657941404
 SpriteRenderer:

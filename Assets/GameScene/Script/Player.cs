@@ -1,5 +1,3 @@
-//ごちゃごちゃ過ぎてマジで意味わからんPlayerのスクリプト（もういらない）
-
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using System.Collections;
@@ -20,7 +18,9 @@ public class Player : MonoBehaviour
 
     private bool isFrozen = false; // プレイヤーが凍結されているかどうかのフラグ
 
-   
+    [SerializeField] Vector2 positionToChange = new Vector2(4, 5); // 変更したいマスの位置を指定
+    [SerializeField] int newTileType = 2; // 新しいタイルタイプを指定
+
 
     public enum SelectScene
     {
@@ -157,7 +157,7 @@ public class Player : MonoBehaviour
         if (x >= minPosition.x && x <= maxPosition.x && y >= minPosition.y && y <= maxPosition.y)
         {
             // マップデータをチェックして移動可能か判定
-            return Ground.map[y, x] == 1 || Ground.map[y, x] == 2 || Ground.map[y, x] == 6; // Groundのmapとして1だったら移動可能
+            return Ground.map[y, x] == 1 || Ground.map[y, x] == 2 ||Ground.map[y, x] == 4 || Ground.map[y, x] == 6; // Groundのmapとして1だったら移動可能
         }
         return false;
     }
@@ -216,8 +216,16 @@ public class Player : MonoBehaviour
                     SceneManager.LoadScene("ClearScene");
                 }
             }
+
+            // 片方のプレイヤーがGround.mapの4に到達したかどうかをチェック
+            if (Ground.map[targetY, targetX] == 4)
+            {
+                Debug.Log("A player reached the death tile. Loading DeadScene...");
+                SceneManager.LoadScene("DeadScene");
+            }
         }
     }
+
 
     public Vector2 GetTargetPos()
     {
@@ -226,116 +234,94 @@ public class Player : MonoBehaviour
 
     private bool CheckSpaceKeyPressed()
     {
-        bool spaceKeyPressed = false; // スペースキーが押されたかどうかのフラグ
+        bool spaceKeyPressed = false;
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
             int currentX = Mathf.RoundToInt(transform.position.x);
             int currentY = Mathf.RoundToInt(transform.position.y);
 
-            // プレイヤーの現在位置がtileType==6のマスかどうかをチェック
             if (Ground.map[currentY, currentX] == 6)
             {
-                // FreezeAndInputコンポーネントを持つオブジェクトを探す
                 FreezeAndInput freezeAndInput = FindObjectOfType<FreezeAndInput>();
                 if (freezeAndInput != null)
                 {
-                    // Freezeメソッドを呼び出す
                     freezeAndInput.Freeze();
-                    SetFrozen(true); // プレイヤーを凍結状態にする
-
-                    // Coroutineを開始する
+                    SetFrozen(true);
                     StartCoroutine(WaitAndUnfreeze(freezeAndInput));
-
-                    spaceKeyPressed = true; // スペースキーが押されたとフラグを立てる
+                    spaceKeyPressed = true;
                 }
             }
-            else
+            // 追加：周囲にギミックの壁がある場合の処理
+            else if (HasNearbyGimmickWall(currentX, currentY))
             {
-                // プレイヤーの現在位置を基準にして上下左右の位置をチェックし、
-                // もし周囲にギミックの壁があるならばFreezeAndInputコンポーネントのFreezeメソッドを呼び出す
-                if (HasNearbyGimmickWall(currentX, currentY))
+                FreezeAndInput freezeAndInput = FindObjectOfType<FreezeAndInput>();
+                if (freezeAndInput != null)
                 {
-                    // FreezeAndInputコンポーネントを持つオブジェクトを探す
-                    FreezeAndInput freezeAndInput = FindObjectOfType<FreezeAndInput>();
-                    if (freezeAndInput != null)
-                    {
-                        // Freezeメソッドを呼び出す
-                        freezeAndInput.Freeze();
-                        SetFrozen(true); // プレイヤーを凍結状態にする
-
-                        // Coroutineを開始する
-                        StartCoroutine(WaitAndUnfreeze(freezeAndInput));
-
-                        spaceKeyPressed = true; // スペースキーが押されたとフラグを立てる
-                    }
+                    freezeAndInput.Freeze();
+                    SetFrozen(true);
+                    StartCoroutine(WaitAndUnfreeze(freezeAndInput));
+                    spaceKeyPressed = true;
                 }
             }
 
             if (Ground.map[currentY, currentX] == 7)
             {
-                // tileTypeが7の場合の処理をここに記述する
                 Debug.Log("This tile is a lever tile (tileType == 7). Perform lever action here.");
-                // 例えば、レバーを操作する処理を呼び出すなど
-                // LeverAction();
-
-                spaceKeyPressed = true; // スペースキーが押されたとフラグを立てる
-            }
-            else
-            {
-                
+                spaceKeyPressed = true;
             }
         }
 
-        return spaceKeyPressed; // スペースキーが押されたかどうかの結果を返す
+        return spaceKeyPressed;
     }
-
 
 
     private IEnumerator WaitAndUnfreeze(FreezeAndInput freezeAndInput)
     {
         bool passwordCorrect = false;
 
-        // パスワードが正しいかどうかを確認するまでループする
         while (!passwordCorrect)
         {
-            // ESCキーが押されたかどうかをチェックする
             if (Input.GetKeyDown(KeyCode.Escape))
             {
-                // ESCキーが押された場合の処理
-                // ここでは凍結状態を解除しないまま、処理を終了し操作画面に戻る
                 Debug.Log("ESCキーが押されたため、操作画面に戻ります。");
-
-                // フリーズ画面を閉じる処理
-                CloseFreezeScreen(); // このメソッドは適切なものに置き換えてください
-
-                SetFrozen(false); // プレイヤーの凍結を解除する
-
-                yield break; // Coroutineを終了して元の処理に戻る
+                CloseFreezeScreen();
+                SetFrozen(false);
+                yield break;
             }
 
-            // パスワードが正しいかどうかを即座にチェックする
             if (freezeAndInput.IsPasswordCorrect())
             {
                 freezeAndInput.Unfreeze();
-                SetFrozen(false); // プレイヤーの凍結を解除する
+                SetFrozen(false);
 
-                // パスワードが正しい場合の処理
+                // パスワードが正しい場合の処理：指定したマスを変化させる
+                ChangeTileAfterPasswordCorrect();
+
                 currentScene = SelectScene.ProccesInput;
                 Debug.Log("パスワードが正しいため、アンフリーズされました。ここには通りました。");
 
-                passwordCorrect = true; // パスワードが正しいことをフラグで示す
+                passwordCorrect = true;
             }
             else
             {
-                // パスワードが正しくない場合の処理
-                //Debug.Log("パスワードが正しくありません。プレイヤーはまだ凍結されています。");
-                SetFrozen(true); // プレイヤーを凍結状態にしたままとする
-
-                yield return null; // 1フレーム待機する
+                SetFrozen(true);
+                yield return null;
             }
         }
     }
+
+    private void ChangeTileAfterPasswordCorrect()
+    {
+ 
+
+        Ground ground = FindObjectOfType<Ground>();
+        if (ground != null)
+        {
+            ground.UpdateTileType((int)positionToChange.x, (int)positionToChange.y, newTileType);
+        }
+    }
+
 
     public Ground ground;
     private void EnterPassword(Vector3 position)
