@@ -18,8 +18,8 @@ public class Player : MonoBehaviour
 
     private bool isFrozen = false; // プレイヤーが凍結されているかどうかのフラグ
 
-    [SerializeField] Vector2 positionToChange = new Vector2(4, 5); // 変更したいマスの位置を指定
-    [SerializeField] int newTileType = 2; // 新しいタイルタイプを指定
+    [SerializeField] Vector2[] positionToChange; // 変更したいマスの位置を指定
+    [SerializeField] int[] newTileType; // 新しいタイルタイプを指定
 
 
     public enum SelectScene
@@ -157,7 +157,7 @@ public class Player : MonoBehaviour
         if (x >= minPosition.x && x <= maxPosition.x && y >= minPosition.y && y <= maxPosition.y)
         {
             // マップデータをチェックして移動可能か判定
-            return Ground.map[y, x] == 1 || Ground.map[y, x] == 2 ||Ground.map[y, x] == 4 || Ground.map[y, x] == 6; // Groundのmapとして1だったら移動可能
+            return Ground.map[y, x] == 1 || Ground.map[y, x] == 2 || Ground.map[y, x] == 4 || Ground.map[y, x] == 6; // Groundのmapとして1だったら移動可能
         }
         return false;
     }
@@ -313,12 +313,16 @@ public class Player : MonoBehaviour
 
     private void ChangeTileAfterPasswordCorrect()
     {
- 
-
         Ground ground = FindObjectOfType<Ground>();
-        if (ground != null)
+        if (ground != null && positionToChange.Length == newTileType.Length)
         {
-            ground.UpdateTileType((int)positionToChange.x, (int)positionToChange.y, newTileType);
+            for (int i = 0; i < positionToChange.Length; i++)
+            {
+                int x = (int)positionToChange[i].x;
+                int y = (int)positionToChange[i].y;
+                int newType = newTileType[i];
+                ground.UpdateTileType(x, y, newType);
+            }
         }
     }
 
@@ -378,13 +382,12 @@ public class Player : MonoBehaviour
 
 
     public void CloseFreezeScreen()
+    {
+        FreezeAndInput freezeAndInput = FindObjectOfType<FreezeAndInput>();
+        if (freezeAndInput != null)
         {
-            FreezeAndInput freezeAndInput = FindObjectOfType<FreezeAndInput>();
-            if (freezeAndInput != null)
-            {
-                freezeAndInput.CloseFreezeScreen();
-            }
+            freezeAndInput.CloseFreezeScreen();
         }
+    }
 
 }
-
