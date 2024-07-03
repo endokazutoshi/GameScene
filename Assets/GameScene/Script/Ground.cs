@@ -27,6 +27,10 @@ public class Ground : MonoBehaviour
     [SerializeField] private GameObject wallPrefab;
     [SerializeField] private GameObject floorPrefab;
     [SerializeField] private GameObject goalPrefab;
+    [SerializeField] private GameObject passWorldPrefab;
+    [SerializeField] private GameObject deadPrefab;
+    [SerializeField] private GameObject switchPrefab;
+    [SerializeField] private GameObject moveRandomPrefab;
 
     const int _nLengthStart = 1;
     const int _nWidthStart = 1;
@@ -167,6 +171,18 @@ public class Ground : MonoBehaviour
                     break;
                 case 2: // ゴール
                     Instantiate(goalPrefab, new Vector3(x, y, 0), Quaternion.identity, transform);
+                    break;
+                case 3: //暗号
+                    Instantiate(passWorldPrefab, new Vector3(x, y, 0), Quaternion.identity, transform);
+                    break;
+                case 4: //死亡
+                    Instantiate(deadPrefab, new Vector3(x, y, 0), Quaternion.identity, transform);
+                    break;
+                case 5: //スイッチ
+                    Instantiate(switchPrefab, new Vector3(x, y, 0), Quaternion.identity, transform);
+                    break;
+                case 6: //移動キーぐちゃぐちゃ
+                    Instantiate(moveRandomPrefab, new Vector3(x, y, 0), Quaternion.identity, transform);
                     break;
                     // 必要に応じて他のタイルタイプに対する処理を追加する
             }

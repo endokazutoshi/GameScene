@@ -21,6 +21,8 @@ public class Player : MonoBehaviour
     [SerializeField] Vector2[] positionToChange; // 変更したいマスの位置を指定
     [SerializeField] int[] newTileType; // 新しいタイルタイプを指定
 
+    [SerializeField] private int newTileTypeForLever = 3; // レバーアクションで設定したい新しいタイルのタイプ
+
 
     public enum SelectScene
     {
@@ -49,24 +51,34 @@ public class Player : MonoBehaviour
         switch (currentScene)
         {
             case SelectScene.ProccesInput:
-                //Debug.Log("プレイヤーの操作に戻ります。");
                 ProcessMovementInput();
                 if (CheckSpaceKeyPressed())
                 {
                     currentScene = SelectScene.CheckSpaceKey;
-                    Debug.Log("Updateのswitch文の一つ目のif文");
                 }
                 break;
             case SelectScene.CheckSpaceKey:
-                if (CheckSpaceKeyPressed())
+                if (CheckLeverTileKeyPressed())
                 {
+                    ProcessLeverAction();
                     currentScene = SelectScene.CheckGoal;
-                    Debug.Log("Updateのswitch文の2つ目のif文");
                 }
-                else
+                else if (Ground.map[Mathf.RoundToInt(transform.position.y), Mathf.RoundToInt(transform.position.x)] == 3)
                 {
-                    currentScene = SelectScene.ProccesInput; // パスワード入力が終わったら再び入力処理に戻る
-                    Debug.Log("パスワードが終わった際に出てくるelse文");
+                    // Ground.mapが3の場合の処理（ギミックの壁がある場合）
+                    FreezeAndInput freezeAndInput = FindObjectOfType<FreezeAndInput>();
+                    if (freezeAndInput != null)
+                    {
+                        freezeAndInput.Freeze();
+                        SetFrozen(true);
+                        StartCoroutine(WaitAndUnfreeze(freezeAndInput));
+                    }
+                }
+                else if (Ground.map[Mathf.RoundToInt(transform.position.y), Mathf.RoundToInt(transform.position.x)] == 7)
+                {
+                    // Ground.mapが7の場合の処理（レバータイルの場合）
+                    ProcessLeverAction();
+                    currentScene = SelectScene.CheckGoal;
                 }
                 break;
             case SelectScene.CheckGoal:
@@ -82,6 +94,65 @@ public class Player : MonoBehaviour
 
         // ゴールに到達しているかどうかを毎フレームチェック
         CheckGoalReached();
+    }
+
+    private bool CheckSpaceKeyPressed()//暗証番号時のspaceキーの処理
+    {
+        bool spaceKeyPressed = false;
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            int currentX = Mathf.RoundToInt(transform.position.x);
+            int currentY = Mathf.RoundToInt(transform.position.y);
+
+            if (Ground.map[currentY, currentX] == 6)
+            {
+                // 暗証番号タイルの場合の処理
+                FreezeAndInput freezeAndInput = FindObjectOfType<FreezeAndInput>();
+                if (freezeAndInput != null)
+                {
+                    freezeAndInput.Freeze();
+                    SetFrozen(true);
+                    StartCoroutine(WaitAndUnfreeze(freezeAndInput));
+                    spaceKeyPressed = true;
+                }
+            }
+            else if (HasNearbyGimmickWall(currentX, currentY))
+            {
+                // 周囲にギミックの壁がある場合の処理
+                FreezeAndInput freezeAndInput = FindObjectOfType<FreezeAndInput>();
+                if (freezeAndInput != null)
+                {
+                    freezeAndInput.Freeze();
+                    SetFrozen(true);
+                    StartCoroutine(WaitAndUnfreeze(freezeAndInput));
+                    spaceKeyPressed = true;
+                }
+            }
+        }
+
+        return spaceKeyPressed;
+    }
+
+
+    private bool CheckLeverTileKeyPressed()
+    {
+        bool leverTileKeyPressed = false;
+
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            int currentX = Mathf.RoundToInt(transform.position.x);
+            int currentY = Mathf.RoundToInt(transform.position.y);
+
+            if (Ground.map[currentY, currentX] == 7)
+            {
+                // レバータイルの場合の処理
+                ProcessLeverAction();
+                leverTileKeyPressed = true;
+            }
+        }
+
+        return leverTileKeyPressed;
     }
 
 
@@ -232,48 +303,31 @@ public class Player : MonoBehaviour
         return targetPos;
     }
 
-    private bool CheckSpaceKeyPressed()
+   
+
+
+    private void ProcessLeverAction()
     {
-        bool spaceKeyPressed = false;
+        // レバータイルに対する特定のアクションを実行する
+        Debug.Log("Performing lever action...");
 
-        if (Input.GetKeyDown(KeyCode.Space))
+        int currentX = Mathf.RoundToInt(transform.position.x);
+        int currentY = Mathf.RoundToInt(transform.position.y);
+
+        // ここにレバーアクションに応じた処理を記述する
+        // 例えば、タイルのタイプを変更するなどの操作を行う
+        Ground ground = FindObjectOfType<Ground>();
+        if (ground != null)
         {
-            int currentX = Mathf.RoundToInt(transform.position.x);
-            int currentY = Mathf.RoundToInt(transform.position.y);
-
-            if (Ground.map[currentY, currentX] == 6)
-            {
-                FreezeAndInput freezeAndInput = FindObjectOfType<FreezeAndInput>();
-                if (freezeAndInput != null)
-                {
-                    freezeAndInput.Freeze();
-                    SetFrozen(true);
-                    StartCoroutine(WaitAndUnfreeze(freezeAndInput));
-                    spaceKeyPressed = true;
-                }
-            }
-            // 追加：周囲にギミックの壁がある場合の処理
-            else if (HasNearbyGimmickWall(currentX, currentY))
-            {
-                FreezeAndInput freezeAndInput = FindObjectOfType<FreezeAndInput>();
-                if (freezeAndInput != null)
-                {
-                    freezeAndInput.Freeze();
-                    SetFrozen(true);
-                    StartCoroutine(WaitAndUnfreeze(freezeAndInput));
-                    spaceKeyPressed = true;
-                }
-            }
-
-            if (Ground.map[currentY, currentX] == 7)
-            {
-                Debug.Log("This tile is a lever tile (tileType == 7). Perform lever action here.");
-                spaceKeyPressed = true;
-            }
+            // レバーアクションでタイルを別のタイプに変更するなどの処理を記述する
+            ground.UpdateTileType(currentX, currentY, newTileTypeForLever);
         }
 
-        return spaceKeyPressed;
+        // レバーアクションが終了した後の後処理が必要な場合はここに記述する
     }
+
+
+
 
 
     private IEnumerator WaitAndUnfreeze(FreezeAndInput freezeAndInput)
@@ -325,6 +379,8 @@ public class Player : MonoBehaviour
             }
         }
     }
+
+
 
 
     public Ground ground;
