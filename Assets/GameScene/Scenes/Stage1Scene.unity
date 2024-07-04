@@ -725,15 +725,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _speed: 5
   initialPosition: {x: 2, y: 2}
-  positionToChange:
-  - {x: 1, y: 8}
-  - {x: 5, y: 6}
-  - {x: 5, y: 5}
-  - {x: 7, y: 6}
-  - {x: 3, y: 6}
-  newTileType: 0000000000000000000000000400000004000000
-  newTileTypeForLever: 3
-  ground: {fileID: 0}
+  passwordPositionChange:
+  - {x: 2, y: 2}
+  passwordNewTileType: 02000000
+  LeverPositionChange:
+  - {x: 1, y: 1}
+  LeverNewTileType: 02000000
 --- !u!212 &1646936444
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -874,10 +871,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _speed: 5
   initialPosition: {x: 13, y: 7}
-  positionToChange: []
-  newTileType: 
-  newTileTypeForLever: 3
-  ground: {fileID: 0}
+  passwordPositionChange: []
+  passwordNewTileType: 
+  LeverPositionChange: []
+  LeverNewTileType: 
 --- !u!212 &1657941404
 SpriteRenderer:
   m_ObjectHideFlags: 0

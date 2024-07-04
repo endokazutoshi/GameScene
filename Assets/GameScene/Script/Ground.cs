@@ -270,5 +270,3 @@ public class Ground : MonoBehaviour
         // 他のゲームオブジェクトに対する影響をここで処理することもできます
     }
 }
-
-

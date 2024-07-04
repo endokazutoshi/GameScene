@@ -18,25 +18,18 @@ public class Player : MonoBehaviour
 
     private bool isFrozen = false; // プレイヤーが凍結されているかどうかのフラグ
 
-    [SerializeField] Vector2[] positionToChange; // 変更したいマスの位置を指定
-    [SerializeField] int[] newTileType; // 新しいタイルタイプを指定
+    [SerializeField] Vector2[] passwordPositionChange; // 変更したいマスの位置を指定
+    [SerializeField] int[] passwordNewTileType; // 新しいタイルタイプを指定
 
-    [SerializeField] private int newTileTypeForLever = 3; // レバーアクションで設定したい新しいタイルのタイプ
+    [SerializeField] Vector2[] LeverPositionChange;
+    [SerializeField] int[] LeverNewTileType;
 
-
-    public enum SelectScene
-    {
-        ProccesInput,
-        CheckSpaceKey,
-        CheckGoal
-    }
-
+    private bool leverOn = false; // レバーの状態（オンかオフか）
 
     public void SetFrozen(bool frozen)
     {
         isFrozen = frozen;
     }
-    private SelectScene currentScene = SelectScene.ProccesInput;
 
     private void Start()
     {
@@ -48,134 +41,88 @@ public class Player : MonoBehaviour
     {
         if (goalReached || isFrozen) return;
 
-        switch (currentScene)
+        ProcessMovementInput();
+
+        if (CheckSpaceKeyPressed())
         {
-            case SelectScene.ProccesInput:
-                ProcessMovementInput();
-                if (CheckSpaceKeyPressed())
-                {
-                    currentScene = SelectScene.CheckSpaceKey;
-                }
-                break;
-            case SelectScene.CheckSpaceKey:
-                if (CheckLeverTileKeyPressed())
-                {
-                    ProcessLeverAction();
-                    currentScene = SelectScene.CheckGoal;
-                }
-                else if (Ground.map[Mathf.RoundToInt(transform.position.y), Mathf.RoundToInt(transform.position.x)] == 3)
-                {
-                    // Ground.mapが3の場合の処理（ギミックの壁がある場合）
-                    FreezeAndInput freezeAndInput = FindObjectOfType<FreezeAndInput>();
-                    if (freezeAndInput != null)
-                    {
-                        freezeAndInput.Freeze();
-                        SetFrozen(true);
-                        StartCoroutine(WaitAndUnfreeze(freezeAndInput));
-                    }
-                }
-                else if (Ground.map[Mathf.RoundToInt(transform.position.y), Mathf.RoundToInt(transform.position.x)] == 7)
-                {
-                    // Ground.mapが7の場合の処理（レバータイルの場合）
-                    ProcessLeverAction();
-                    currentScene = SelectScene.CheckGoal;
-                }
-                break;
-            case SelectScene.CheckGoal:
-                CheckGoalReached();
-                if (!goalReached) // ゴールに到達していない場合、再び入力処理に戻る
-                {
-                    currentScene = SelectScene.ProccesInput;
-                }
-                break;
-            default:
-                break;
+            ProcessSpaceKeyAction();
         }
 
-        // ゴールに到達しているかどうかを毎フレームチェック
         CheckGoalReached();
     }
 
-    private bool CheckSpaceKeyPressed()//暗証番号時のspaceキーの処理
+    private bool CheckSpaceKeyPressed()
     {
-        bool spaceKeyPressed = false;
-
         if (Input.GetKeyDown(KeyCode.Space))
         {
             int currentX = Mathf.RoundToInt(transform.position.x);
             int currentY = Mathf.RoundToInt(transform.position.y);
 
-            if (Ground.map[currentY, currentX] == 6)
+            Debug.Log("Current position: (" + currentX + ", " + currentY + ")");
+
+            if (Ground.map[currentY, currentX] == 6 || HasNearbyGimmickWall(currentX, currentY))
             {
-                // 暗証番号タイルの場合の処理
+                Debug.Log("Freeze and input triggered or nearby gimmick wall found.");
                 FreezeAndInput freezeAndInput = FindObjectOfType<FreezeAndInput>();
                 if (freezeAndInput != null)
                 {
                     freezeAndInput.Freeze();
                     SetFrozen(true);
                     StartCoroutine(WaitAndUnfreeze(freezeAndInput));
-                    spaceKeyPressed = true;
+                    return true;
                 }
             }
-            else if (HasNearbyGimmickWall(currentX, currentY))
+            else if (Ground.map[currentY, currentX] == 7)
             {
-                // 周囲にギミックの壁がある場合の処理
-                FreezeAndInput freezeAndInput = FindObjectOfType<FreezeAndInput>();
-                if (freezeAndInput != null)
+                // レバーの近くでSpaceキーが押された場合
+                leverOn = !leverOn; // レバーの状態を切り替える
+                Debug.Log("Lever toggled. Lever is now: " + (leverOn ? "ON" : "OFF"));
+
+                if (leverOn)
                 {
-                    freezeAndInput.Freeze();
-                    SetFrozen(true);
-                    StartCoroutine(WaitAndUnfreeze(freezeAndInput));
-                    spaceKeyPressed = true;
+                    // レバーがオンの場合、タイルの変更を行う
+                    ChangeTileAfterLeverOn();
                 }
+
+                return true;
             }
         }
-
-        return spaceKeyPressed;
+        return false;
     }
 
 
-    private bool CheckLeverTileKeyPressed()
+    private void ProcessSpaceKeyAction()
     {
-        bool leverTileKeyPressed = false;
+        int currentX = Mathf.RoundToInt(transform.position.x);
+        int currentY = Mathf.RoundToInt(transform.position.y);
 
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Ground.map[currentY, currentX] == 3)
         {
-            int currentX = Mathf.RoundToInt(transform.position.x);
-            int currentY = Mathf.RoundToInt(transform.position.y);
-
-            if (Ground.map[currentY, currentX] == 7)
+            FreezeAndInput freezeAndInput = FindObjectOfType<FreezeAndInput>();
+            if (freezeAndInput != null)
             {
-                // レバータイルの場合の処理
-                ProcessLeverAction();
-                leverTileKeyPressed = true;
+                freezeAndInput.Freeze();
+                SetFrozen(true);
+                StartCoroutine(WaitAndUnfreeze(freezeAndInput));
             }
         }
-
-        return leverTileKeyPressed;
     }
-
 
     private void ProcessMovementInput()
     {
         Vector2 move = Vector2.zero;
 
-        // キーが押されているかどうかを判定
-        // キーが押されているかどうかを判定
         if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.D))
         {
             if (!isKeyDown)
             {
-                // キーが初めて押されたときの処理
                 isKeyDown = true;
                 keyDownTime = Time.time;
             }
 
-            // キーが押されている間に経過した時間を計算
             float keyElapsedTime = Time.time - keyDownTime;
-            if (keyElapsedTime > 0.1f) // 0.1秒以上経過していたらキーが長押しとみなす
+            if (keyElapsedTime > 0.1f)
             {
-                // キーが長押しされている場合の処理
                 if (Input.GetKey(KeyCode.W) && currentKeyCode == KeyCode.None)
                 {
                     move.y = 1;
@@ -186,8 +133,7 @@ public class Player : MonoBehaviour
                     move.y = -1;
                     currentKeyCode = KeyCode.S;
                 }
-
-                if (Input.GetKey(KeyCode.A) && currentKeyCode == KeyCode.None)
+                else if (Input.GetKey(KeyCode.A) && currentKeyCode == KeyCode.None)
                 {
                     move.x = -1;
                     currentKeyCode = KeyCode.A;
@@ -201,7 +147,6 @@ public class Player : MonoBehaviour
         }
         else
         {
-            // キーが離されたときの処理
             isKeyDown = false;
             currentKeyCode = KeyCode.None;
         }
@@ -214,9 +159,8 @@ public class Player : MonoBehaviour
                 targetPos = newPos;
             }
         }
+
         Move(targetPos);
-
-
     }
 
     private bool IsMoveValid(Vector2 newPos)
@@ -224,14 +168,13 @@ public class Player : MonoBehaviour
         int x = Mathf.RoundToInt(newPos.x);
         int y = Mathf.RoundToInt(newPos.y);
 
-        // マップの範囲内かチェック
         if (x >= minPosition.x && x <= maxPosition.x && y >= minPosition.y && y <= maxPosition.y)
         {
-            // マップデータをチェックして移動可能か判定
-            return Ground.map[y, x] == 1 || Ground.map[y, x] == 2 || Ground.map[y, x] == 4 || Ground.map[y, x] == 6; // Groundのmapとして1だったら移動可能
+            return Ground.map[y, x] == 1 || Ground.map[y, x] == 2 || Ground.map[y, x] == 4 || Ground.map[y, x] == 6;
         }
         return false;
     }
+
     private void Move(Vector2 targetPosition)
     {
         transform.position = Vector2.MoveTowards((Vector2)transform.position, targetPosition, _speed * Time.deltaTime);
@@ -242,53 +185,17 @@ public class Player : MonoBehaviour
         int targetX = Mathf.RoundToInt(targetPos.x);
         int targetY = Mathf.RoundToInt(targetPos.y);
 
-        // プレイヤーが目標位置に完全に到達しているかどうかをチェック
         if (Mathf.Approximately(transform.position.x, targetPos.x) && Mathf.Approximately(transform.position.y, targetPos.y))
         {
-            // プレイヤーがGoalのマスに到達したかどうかをチェック
             if (Ground.map[targetY, targetX] == 2)
             {
-                GameObject[] player1Objects = GameObject.FindGameObjectsWithTag("Player1");
-                GameObject[] player2Objects = GameObject.FindGameObjectsWithTag("Player2");
-
-                bool player1AtGoal = false;
-                bool player2AtGoal = false;
-
-                foreach (GameObject p1 in player1Objects)
+                if (BothPlayersAtGoal())
                 {
-                    Player p1Script = p1.GetComponent<Player>();
-                    int playerX = Mathf.RoundToInt(p1Script.GetTargetPos().x);
-                    int playerY = Mathf.RoundToInt(p1Script.GetTargetPos().y);
-
-                    if (Ground.map[playerY, playerX] == 2)
-                    {
-                        player1AtGoal = true;
-                        break;
-                    }
-                }
-
-                foreach (GameObject p2 in player2Objects)
-                {
-                    Player p2Script = p2.GetComponent<Player>();
-                    int playerX = Mathf.RoundToInt(p2Script.GetTargetPos().x);
-                    int playerY = Mathf.RoundToInt(p2Script.GetTargetPos().y);
-
-                    if (Ground.map[playerY, playerX] == 2)
-                    {
-                        player2AtGoal = true;
-                        break;
-                    }
-                }
-
-                if (player1AtGoal && player2AtGoal)
-                {
-                    // 両方のプレイヤーがゴールに到達した場合にゴール処理を実行
                     Debug.Log("Both players reached the goal. Loading ClearScene...");
                     SceneManager.LoadScene("ClearScene");
                 }
             }
 
-            // 片方のプレイヤーがGround.mapの4に到達したかどうかをチェック
             if (Ground.map[targetY, targetX] == 4)
             {
                 Debug.Log("A player reached the death tile. Loading DeadScene...");
@@ -297,44 +204,85 @@ public class Player : MonoBehaviour
         }
     }
 
+    private bool BothPlayersAtGoal()
+    {
+        GameObject[] player1Objects = GameObject.FindGameObjectsWithTag("Player1");
+        GameObject[] player2Objects = GameObject.FindGameObjectsWithTag("Player2");
+
+        bool player1AtGoal = false;
+        bool player2AtGoal = false;
+
+        foreach (GameObject p1 in player1Objects)
+        {
+            Player p1Script = p1.GetComponent<Player>();
+            int playerX = Mathf.RoundToInt(p1Script.GetTargetPos().x);
+            int playerY = Mathf.RoundToInt(p1Script.GetTargetPos().y);
+
+            if (Ground.map[playerY, playerX] == 2)
+            {
+                player1AtGoal = true;
+                break;
+            }
+        }
+
+        foreach (GameObject p2 in player2Objects)
+        {
+            Player p2Script = p2.GetComponent<Player>();
+            int playerX = Mathf.RoundToInt(p2Script.GetTargetPos().x);
+            int playerY = Mathf.RoundToInt(p2Script.GetTargetPos().y);
+
+            if (Ground.map[playerY, playerX] == 2)
+            {
+                player2AtGoal = true;
+                break;
+            }
+        }
+
+        return player1AtGoal && player2AtGoal;
+    }
+
+
+
+    private void CloseFreezeScreen()
+    {
+        FreezeAndInput freezeAndInput = FindObjectOfType<FreezeAndInput>();
+        if (freezeAndInput != null)
+        {
+            freezeAndInput.Unfreeze();
+        }
+    }
+
+    private bool HasNearbyGimmickWall(int x, int y)
+    {
+        for (int dx = -1; dx <= 1; dx++)
+        {
+            for (int dy = -1; dy <= 1; dy++)
+            {
+                int nx = x + dx;
+                int ny = y + dy;
+
+                if (nx >= 0 && nx < Ground.map.GetLength(1) && ny >= 0 && ny < Ground.map.GetLength(0))
+                {
+                    if (Ground.map[ny, nx] == 3)
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
 
     public Vector2 GetTargetPos()
     {
         return targetPos;
     }
 
-   
 
-
-    private void ProcessLeverAction()
-    {
-        // レバータイルに対する特定のアクションを実行する
-        Debug.Log("Performing lever action...");
-
-        int currentX = Mathf.RoundToInt(transform.position.x);
-        int currentY = Mathf.RoundToInt(transform.position.y);
-
-        // ここにレバーアクションに応じた処理を記述する
-        // 例えば、タイルのタイプを変更するなどの操作を行う
-        Ground ground = FindObjectOfType<Ground>();
-        if (ground != null)
-        {
-            // レバーアクションでタイルを別のタイプに変更するなどの処理を記述する
-            ground.UpdateTileType(currentX, currentY, newTileTypeForLever);
-        }
-
-        // レバーアクションが終了した後の後処理が必要な場合はここに記述する
-    }
-
-
-
-
-
+  
     private IEnumerator WaitAndUnfreeze(FreezeAndInput freezeAndInput)
     {
-        bool passwordCorrect = false;
-
-        while (!passwordCorrect)
+        while (true)
         {
             if (Input.GetKeyDown(KeyCode.Escape))
             {
@@ -348,101 +296,46 @@ public class Player : MonoBehaviour
             {
                 freezeAndInput.Unfreeze();
                 SetFrozen(false);
-
-                // パスワードが正しい場合の処理：指定したマスを変化させる
                 ChangeTileAfterPasswordCorrect();
-
-                currentScene = SelectScene.ProccesInput;
                 Debug.Log("パスワードが正しいため、アンフリーズされました。ここには通りました。");
-
-                passwordCorrect = true;
+                break;
             }
             else
             {
-                SetFrozen(true);
                 yield return null;
             }
         }
     }
 
-    private void ChangeTileAfterPasswordCorrect()
+    private void ChangeTileAfterLeverOn()//レバーがOnだった場合指定したTileTypeを変更する関数
     {
         Ground ground = FindObjectOfType<Ground>();
-        if (ground != null && positionToChange.Length == newTileType.Length)
+        if (ground != null && LeverPositionChange.Length == LeverNewTileType.Length)
         {
-            for (int i = 0; i < positionToChange.Length; i++)
+            for (int i = 0; i < LeverPositionChange.Length; i++)
             {
-                int x = (int)positionToChange[i].x;
-                int y = (int)positionToChange[i].y;
-                int newType = newTileType[i];
+                int x = (int)LeverPositionChange[i].x;
+                int y = (int)LeverPositionChange[i].y;
+                int newType = LeverNewTileType[i];
+                Debug.Log("これはレバーがonの時に使われるんだけどなぁ");
                 ground.UpdateTileType(x, y, newType);
             }
         }
     }
 
-
-
-
-    public Ground ground;
-    private void EnterPassword(Vector3 position)
+    private void ChangeTileAfterPasswordCorrect()//暗証番号が入力されたら指定したTileTypeを変更する関数
     {
-        // 現在の位置が暗証番号タイルに対応しているか確認
-        if (Ground.map[(int)position.y, (int)position.x] == 6)
+        Ground ground = FindObjectOfType<Ground>();
+        if (ground != null && passwordPositionChange.Length == passwordNewTileType.Length)
         {
-            // 正しい暗証番号が入力された場合の処理
-            int x = (int)position.x;
-            int y = (int)position.y;
-            int newTileType = 1; // 例: 変更したいタイルタイプのインデックスに変更
-
-            // 指定した位置に新しいタイルタイプをGround.csで設定する
-            ground.UpdateTileType(x, y, newTileType);
-        }
-    }
-
-
-
-    Vector3 FindNearestPasswordPosition()
-    {
-        GameObject[] passwordObjects = GameObject.FindGameObjectsWithTag("Password");
-        Vector3 playerPosition = transform.position;
-        Vector3 nearestPosition = Vector3.zero;
-        float nearestDistance = Mathf.Infinity;
-
-        foreach (GameObject passwordObject in passwordObjects)
-        {
-            Vector3 passwordPosition = passwordObject.transform.position;
-            float distance = Vector3.Distance(playerPosition, passwordPosition);
-            if (distance < nearestDistance)
+            for (int i = 0; i < passwordPositionChange.Length; i++)
             {
-                nearestDistance = distance;
-                nearestPosition = passwordPosition;
+                int x = (int)passwordPositionChange[i].x;
+                int y = (int)passwordPositionChange[i].y;
+                int newType = passwordNewTileType[i];
+                Debug.Log("これは暗証番号入力がよかったら行われる処理なんだけどなぁ");
+                ground.UpdateTileType(x, y, newType);
             }
-        }
-
-        return nearestPosition;
-    }
-
-    // プレイヤーの周囲にギミックの壁があるかどうかをチェックする関数
-    private bool HasNearbyGimmickWall(int x, int y)
-    {
-        // 上下左右の位置をチェックし、どれか一つでもギミックの壁があればtrueを返す
-        return Ground.map[y, x - 1] == 3 || // 左にギミックの壁があるかチェック
-        Ground.map[y, x + 1] == 3 || // 右にギミックの壁があるかチェック
-        Ground.map[y - 1, x] == 3 || // 上にギミックの壁があるかチェック
-        Ground.map[y + 1, x] == 3 ||// 下にギミックの壁があるかチェック
-        Ground.map[y, x - 1] == 7 || // 左にギミックの壁があるかチェック
-        Ground.map[y, x + 1] == 7 || // 右にギミックの壁があるかチェック
-        Ground.map[y - 1, x] == 7 || // 上にギミックの壁があるかチェック
-        Ground.map[y + 1, x] == 7; // 下にギミックの壁があるかチェック
-    }
-
-
-    public void CloseFreezeScreen()
-    {
-        FreezeAndInput freezeAndInput = FindObjectOfType<FreezeAndInput>();
-        if (freezeAndInput != null)
-        {
-            freezeAndInput.CloseFreezeScreen();
         }
     }
 
