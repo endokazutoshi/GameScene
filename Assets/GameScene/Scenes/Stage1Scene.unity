@@ -731,6 +731,9 @@ MonoBehaviour:
   LeverPositionChange:
   - {x: 1, y: 1}
   LeverNewTileType: 02000000
+  LeverOriginalTileType: 00000000
+  leverOnPrefab: {fileID: 2139573152}
+  leverOffPrefab: {fileID: 571886632}
 --- !u!212 &1646936444
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -871,10 +874,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _speed: 5
   initialPosition: {x: 13, y: 7}
-  passwordPositionChange: []
-  passwordNewTileType: 
+  passwordPositionChange:
+  - {x: 19, y: 2}
+  passwordNewTileType: 02000000
   LeverPositionChange: []
   LeverNewTileType: 
+  LeverOriginalTileType: 
+  leverOnPrefab: {fileID: 0}
+  leverOffPrefab: {fileID: 0}
 --- !u!212 &1657941404
 SpriteRenderer:
   m_ObjectHideFlags: 0

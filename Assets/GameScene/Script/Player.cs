@@ -23,8 +23,13 @@ public class Player : MonoBehaviour
 
     [SerializeField] Vector2[] LeverPositionChange;
     [SerializeField] int[] LeverNewTileType;
+    [SerializeField] int[] LeverOriginalTileType;
 
     private bool leverOn = false; // レバーの状態（オンかオフか）
+
+    [SerializeField] private GameObject leverOnPrefab; // レバーがオンのときのPrefab
+    [SerializeField] private GameObject leverOffPrefab; // レバーがオフのときのPrefab
+    private GameObject currentLeverPrefab; // 現在表示されているレバーのPrefab
 
     public void SetFrozen(bool frozen)
     {
@@ -41,26 +46,26 @@ public class Player : MonoBehaviour
     {
         if (goalReached || isFrozen) return;
 
-        ProcessMovementInput();
+        ProcessMovementInput();//Playerを動かす処理
 
-        if (CheckSpaceKeyPressed())
+        if (CheckSpaceKeyPressed())//スペースキーを押したら
         {
             ProcessSpaceKeyAction();
         }
-
+        //ゴールシーン
         CheckGoalReached();
     }
 
-    private bool CheckSpaceKeyPressed()
+    private bool CheckSpaceKeyPressed()//スペースキーの処理
     {
-        if (Input.GetKeyDown(KeyCode.Space))
+        if (Input.GetKeyDown(KeyCode.Space))//スペースキーを押したら...
         {
             int currentX = Mathf.RoundToInt(transform.position.x);
             int currentY = Mathf.RoundToInt(transform.position.y);
 
-            Debug.Log("Current position: (" + currentX + ", " + currentY + ")");
+            Debug.Log("Current position: (" + currentX + ", " + currentY + ")");//Playerの現在地のデバック
 
-            if (Ground.map[currentY, currentX] == 6 || HasNearbyGimmickWall(currentX, currentY))
+            if (HasNearbyGimmickWall(currentX, currentY))
             {
                 Debug.Log("Freeze and input triggered or nearby gimmick wall found.");
                 FreezeAndInput freezeAndInput = FindObjectOfType<FreezeAndInput>();
@@ -72,7 +77,7 @@ public class Player : MonoBehaviour
                     return true;
                 }
             }
-            else if (Ground.map[currentY, currentX] == 7)
+            else if (HasNearbyGimmickLever(currentX, currentY))
             {
                 // レバーの近くでSpaceキーが押された場合
                 leverOn = !leverOn; // レバーの状態を切り替える
@@ -82,6 +87,13 @@ public class Player : MonoBehaviour
                 {
                     // レバーがオンの場合、タイルの変更を行う
                     ChangeTileAfterLeverOn();
+                    DisplayLeverPrefab(leverOnPrefab);
+                }
+                else
+                {
+                    ChangeTileAfterLeverOff();
+
+                    DisplayLeverPrefab(leverOffPrefab);
                 }
 
                 return true;
@@ -91,7 +103,7 @@ public class Player : MonoBehaviour
     }
 
 
-    private void ProcessSpaceKeyAction()
+    private void ProcessSpaceKeyAction()//スペースキーのアクション
     {
         int currentX = Mathf.RoundToInt(transform.position.x);
         int currentY = Mathf.RoundToInt(transform.position.y);
@@ -252,7 +264,7 @@ public class Player : MonoBehaviour
         }
     }
 
-    private bool HasNearbyGimmickWall(int x, int y)
+    private bool HasNearbyGimmickWall(int x, int y)//暗証番号の近くにいるか判定
     {
         for (int dx = -1; dx <= 1; dx++)
         {
@@ -267,6 +279,30 @@ public class Player : MonoBehaviour
                     {
                         return true;
                     }
+
+
+                }
+            }
+        }
+        return false;
+    }
+
+    private bool HasNearbyGimmickLever(int x, int y)//レバーマスの近くにいるか判定
+    {
+        for (int dx = -1; dx <= 1; dx++)
+        {
+            for (int dy = -1; dy <= 1; dy++)
+            {
+                int nx = x + dx;
+                int ny = y + dy;
+
+                if (nx >= 0 && nx < Ground.map.GetLength(1) && ny >= 0 && ny < Ground.map.GetLength(0))
+                {
+                    if (Ground.map[ny, nx] == 7)
+                    {
+                        return true;
+                    }
+
                 }
             }
         }
@@ -279,7 +315,7 @@ public class Player : MonoBehaviour
     }
 
 
-  
+
     private IEnumerator WaitAndUnfreeze(FreezeAndInput freezeAndInput)
     {
         while (true)
@@ -307,21 +343,38 @@ public class Player : MonoBehaviour
         }
     }
 
-    private void ChangeTileAfterLeverOn()//レバーがOnだった場合指定したTileTypeを変更する関数
-    {
-        Ground ground = FindObjectOfType<Ground>();
-        if (ground != null && LeverPositionChange.Length == LeverNewTileType.Length)
-        {
-            for (int i = 0; i < LeverPositionChange.Length; i++)
-            {
-                int x = (int)LeverPositionChange[i].x;
-                int y = (int)LeverPositionChange[i].y;
-                int newType = LeverNewTileType[i];
-                Debug.Log("これはレバーがonの時に使われるんだけどなぁ");
-                ground.UpdateTileType(x, y, newType);
-            }
-        }
-    }
+    //private void ChangeTileAfterLeverOn()//レバーがOnだった場合指定したTileTypeを変更する関数
+    //{
+    //    Ground ground = FindObjectOfType<Ground>();
+    //    if (ground != null && LeverPositionChange.Length == LeverNewTileType.Length)
+    //    {
+    //        for (int i = 0; i < LeverPositionChange.Length; i++)
+    //        {
+    //            int x = (int)LeverPositionChange[i].x;
+    //            int y = (int)LeverPositionChange[i].y;
+    //            int newType = LeverNewTileType[i];
+    //            Debug.Log("これはレバーがonの時に使われるんだけどなぁ");
+    //            ground.UpdateTileType(x, y, newType);
+    //        }
+    //    }
+    //}
+
+    //private void ChangeTileAfterLeverOff() // レバーがOFFの場合にタイルを元に戻す関数
+    //{
+    //    Ground ground = FindObjectOfType<Ground>();
+    //    if (ground != null && LeverPositionChange.Length == LeverOriginalTileType.Length)
+    //    {
+    //        for (int i = 0; i < LeverPositionChange.Length; i++)
+    //        {
+    //            int x = (int)LeverPositionChange[i].x;
+    //            int y = (int)LeverPositionChange[i].y;
+    //            int originalType = LeverOriginalTileType[i];
+    //            Debug.Log("これはレバーがoffの時に使われるんだけどなぁ");
+    //            ground.UpdateTileType(x, y, originalType);
+    //        }
+    //    }
+    //}
+
 
     private void ChangeTileAfterPasswordCorrect()//暗証番号が入力されたら指定したTileTypeを変更する関数
     {
@@ -336,6 +389,55 @@ public class Player : MonoBehaviour
                 Debug.Log("これは暗証番号入力がよかったら行われる処理なんだけどなぁ");
                 ground.UpdateTileType(x, y, newType);
             }
+        }
+    }
+
+    private void ChangeTileAfterLeverOn()
+    {
+        Ground ground = FindObjectOfType<Ground>();
+        if (ground != null && LeverPositionChange.Length == LeverNewTileType.Length)
+        {
+            for (int i = 0; i < LeverPositionChange.Length; i++)
+            {
+                int x = (int)LeverPositionChange[i].x;
+                int y = (int)LeverPositionChange[i].y;
+                int newType = LeverNewTileType[i];
+                Debug.Log("これはレバーがonの時に使われるんだけどなぁ");
+                ground.UpdateTileType(x, y, newType);
+            }
+        }
+        // レバーがオンのPrefabを表示
+        DisplayLeverPrefab(leverOnPrefab);
+    }
+
+    private void ChangeTileAfterLeverOff()
+    {
+        Ground ground = FindObjectOfType<Ground>();
+        if (ground != null && LeverPositionChange.Length == LeverOriginalTileType.Length)
+        {
+            for (int i = 0; i < LeverPositionChange.Length; i++)
+            {
+                int x = (int)LeverPositionChange[i].x;
+                int y = (int)LeverPositionChange[i].y;
+                int originalType = LeverOriginalTileType[i];
+                Debug.Log("これはレバーがoffの時に使われるんだけどなぁ");
+                ground.UpdateTileType(x, y, originalType);
+            }
+        }
+        // レバーがオフのPrefabを表示
+        DisplayLeverPrefab(leverOffPrefab);
+    }
+
+    private void DisplayLeverPrefab(GameObject prefab)
+    {
+        if (currentLeverPrefab != null)
+        {
+            Destroy(currentLeverPrefab); // 現在のPrefabを削除
+        }
+
+        if (prefab != null)
+        {
+            currentLeverPrefab = Instantiate(prefab, transform.position, Quaternion.identity); // 新しいPrefabを表示
         }
     }
 

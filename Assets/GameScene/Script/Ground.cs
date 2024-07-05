@@ -111,6 +111,10 @@ public class Ground : MonoBehaviour
                     leverInstance = Instantiate(_leverPrefabOff, new Vector3(length, width, 0), Quaternion.identity, transform);
                     // ‚±‚±‚Å leverInstance ‚ğ“KØ‚Éˆ—‚·‚é‚½‚ß‚Ì’Ç‰Á‚Ìİ’è‚ğs‚¤‰Â”\«‚ª‚ ‚è‚Ü‚·
                 }
+                if(tileType == 8)
+                {
+                    leverInstance = Instantiate(_leverPrefabOn, new Vector3(length, width, 0), Quaternion.identity, transform);
+                }
             }
         }
     }
