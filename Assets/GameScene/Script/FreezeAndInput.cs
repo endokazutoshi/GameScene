@@ -157,6 +157,7 @@ public class FreezeAndInput : MonoBehaviour
     void CheckInput()
     {
         string inputText = inputField.text;
+        feedbackText.text = "ESCで戻る";
         if (inputText == answerPanel) // 正しいパスワードであることを確認
         {
             Unfreeze(); // プレイヤーの凍結を解除する
