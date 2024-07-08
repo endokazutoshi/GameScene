@@ -273,4 +273,25 @@ public class Ground : MonoBehaviour
 
         // 他のゲームオブジェクトに対する影響をここで処理することもできます
     }
+    public void DisableTile(int x, int y)
+    {
+        // 指定された位置にあるタイルを無効化する
+        foreach (Transform child in transform)
+        {
+            if (Mathf.RoundToInt(child.position.x) == x && Mathf.RoundToInt(child.position.y) == y)
+            {
+                child.gameObject.SetActive(false);
+                break;
+            }
+        }
+    }
+
+    public void EnableTile(int x, int y, GameObject prefab)
+    {
+        // 指定された位置に新しいタイルを有効化して表示する
+        GameObject newTile = Instantiate(prefab, new Vector3(x, y, 0), Quaternion.identity, transform);
+        newTile.SetActive(true);
+    }
+
+
 }
